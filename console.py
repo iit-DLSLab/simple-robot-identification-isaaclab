@@ -16,6 +16,7 @@ class Console():
         self.isDown = True
         self.setpoint_collection = False
         self.falling_collection = False
+        self.trajectory_collection = False
         self.isActivated = False
 
         # Autocomplete setup
@@ -84,15 +85,22 @@ class Console():
                     
                 elif(input_string == "startCollection"):
 
-                    mode = input("Select the collection mode (setpoint/falling): ")
+                    mode = input("Select the collection mode (setpoint/falling/trajectory): ")
                     if(mode == "setpoint"):
                         self.setpoint_collection = True
                         self.falling_collection = False
+                        self.trajectory_collection = False
                         print("Setpoint collection mode activated")
                     elif(mode == "falling"):
                         self.setpoint_collection = False
                         self.falling_collection = True
+                        self.trajectory_collection = False
                         print("Falling collection mode activated")
+                    elif(mode == "trajectory"):
+                        self.setpoint_collection = False
+                        self.falling_collection = False
+                        self.trajectory_collection = True
+                        print("Trajectory collection mode activated")
                     else:
                         print("Invalid mode selected")
                         self.isActivated = False

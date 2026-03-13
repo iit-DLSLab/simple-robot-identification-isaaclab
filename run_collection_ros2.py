@@ -5,8 +5,7 @@
 
 import rclpy 
 from rclpy.node import Node 
-from sensor_msgs.msg import Joy
-from dls2_msgs.msg import BaseStateMsg, BlindStateMsg, ControlSignalMsg, TrajectoryGeneratorMsg
+from dls2_interface.msg import BaseState, BlindState, Imu, TrajectoryGenerator
 
 import time
 import numpy as np
@@ -41,14 +40,12 @@ class Data_Collection_Node(Node):
     def __init__(self):
         super().__init__('Data_Collection_Node')
         # Subscribers and Publishers
-        self.subscription_base_state = self.create_subscription(BaseStateMsg,"/dls2/base_state", self.get_base_state_callback, 1)
-        self.subscription_blind_state = self.create_subscription(BlindStateMsg,"/dls2/blind_state", self.get_blind_state_callback, 1)
-        self.publisher_trajectory_generator = self.create_publisher(TrajectoryGeneratorMsg,"dls2/trajectory_generator", 1)
+        self.subscription_blind_state = self.create_subscription(BlindState,"/blind_state", self.get_blind_state_callback, 1)
+        self.publisher_trajectory_generator = self.create_publisher(TrajectoryGenerator,"/trajectory_generator", 1)
         self.timer = self.create_timer(1.0/CONTROL_FREQ, self.compute_control)
 
 
         # Safety check to not do anything until a first base and blind state are received
-        self.first_message_base_arrived = False
         self.first_message_joints_arrived = False 
 
         # Timing stuff
@@ -106,6 +103,9 @@ class Data_Collection_Node(Node):
         self.saved_desired_joints_velocity = None
         self.num_traj_saved = 0
 
+        # Trajectory only variables
+        self.chirp_traj_time = 6.0
+
 
         # Interactive Command Line ----------------------------
         from console import Console
@@ -115,30 +115,10 @@ class Data_Collection_Node(Node):
         thread_console.start()
 
 
-    def get_base_state_callback(self, msg):
-        
-        self.position = np.array(msg.position)
-        # For the quaternion, the order is [w, x, y, z] on mujoco, and [x, y, z, w] on DLS2
-        self.orientation = np.roll(np.array(msg.orientation), 1)
-        self.linear_velocity = np.array(msg.linear_velocity)
-        # For the angular velocity, mujoco is in the base frame, and DLS2 is in the world frame
-        self.angular_velocity = np.array(msg.angular_velocity) 
-
-        self.first_message_base_arrived = True
-
-
-
     def get_blind_state_callback(self, msg):
         
         self.joint_positions = np.array(msg.joints_position)
         self.joint_velocities = np.array(msg.joints_velocity)
-        self.feet_contact = np.array(msg.feet_contact)
-
-        # Fix convention DLS2
-        self.joint_positions[0] = -self.joint_positions[0]
-        self.joint_positions[6] = -self.joint_positions[6]
-        self.joint_velocities[0] = -self.joint_velocities[0]
-        self.joint_velocities[6] = -self.joint_velocities[6]
 
         self.first_message_joints_arrived = True
 
@@ -155,6 +135,22 @@ class Data_Collection_Node(Node):
         self.calibration_reference_joint_positions.RL = np.array([0.0+hip_setpoint, 1.21+thigh_setpoint, -2.794+calf_setpoint])
         self.calibration_reference_joint_positions.RR = np.array([0.0-hip_setpoint, 1.21+thigh_setpoint, -2.794+calf_setpoint])
         self.start_collection_time = time.time()
+
+    def _initialize_calibration_trajectory(self):
+        """Initialize calibration trajectory with random values"""
+        print("Generating first a trajectory..")
+
+        # Generate a linear trajectory between actual joint positions and a random setpoint
+        hip_setpoint = np.random.uniform(-0.0, 0.5)
+        thigh_setpoint = np.random.uniform(-1.0, 0.5)
+        calf_setpoint = np.random.uniform(-0., 1.5)
+
+        self.calibration_reference_hip_trajectory = np.interp(np.linspace(0, self.chirp_traj_time, num=100), [0, self.chirp_traj_time], [0.0, hip_setpoint])
+        self.calibration_reference_thigh_trajectory = np.interp(np.linspace(0, self.chirp_traj_time, num=100), [0, self.chirp_traj_time], [1.21, 1.21+thigh_setpoint])
+        self.calibration_reference_calf_trajectory = np.interp(np.linspace(0, self.chirp_traj_time, num=100), [0, self.chirp_traj_time], [-2.794, -2.794+calf_setpoint])
+
+        self.start_collection_time = time.time()
+
 
     def _get_desired_positions_and_gains(self, env):
         """Get desired joint positions and control gains based on collection type"""
@@ -193,7 +189,21 @@ class Data_Collection_Node(Node):
                 desired_joint_pos.FR = copy.deepcopy(self.calibration_reference_joint_positions.FR)
                 desired_joint_pos.RL = copy.deepcopy(self.calibration_reference_joint_positions.RL)
                 desired_joint_pos.RR = copy.deepcopy(self.calibration_reference_joint_positions.RR)
-                
+        
+        elif self.console.trajectory_collection:
+            # Trajectory collection: follow the reference trajectory
+            Kp = self.Kp_stand_up_and_down
+            Kd = self.Kd_stand_up_and_down
+
+            time_traj = self.start_collection_time - time.time()
+            desired_joint_pos = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
+            desired_joint_pos.FL[0] = self.calibration_reference_hip_trajectory[int((time_traj/self.chirp_traj_time)*100)]
+            desired_joint_pos.FL[1] = self.calibration_reference_thigh_trajectory[int((time_traj/self.chirp_traj_time)*100)]
+            desired_joint_pos.FL[2] = self.calibration_reference_calf_trajectory[int((time_traj/self.chirp_traj_time)*100)]
+            desired_joint_pos.FR = copy.deepcopy(desired_joint_pos.FL)
+            desired_joint_pos.RL = copy.deepcopy(desired_joint_pos.FL)
+            desired_joint_pos.RR = copy.deepcopy(desired_joint_pos.FL)
+
         return desired_joint_pos, Kp, Kd
 
     def _collect_trajectory_data(self, joints_pos, joints_vel, desired_joint_pos):
@@ -232,6 +242,10 @@ class Data_Collection_Node(Node):
         elif self.console.falling_collection:
             # Complete after falling phase timeout
             return time.time() - self.start_collection_time > 2.5
+
+        elif self.console.trajectory_collection:
+            # Complete after trajectory duration
+            return time.time() - self.start_collection_time > self.chirp_traj_time
 
     def _save_trajectory_data(self):
         """Save collected trajectory data to file and reset buffers"""
@@ -272,7 +286,7 @@ class Data_Collection_Node(Node):
         simulation_dt = self.loop_time
 
         # Safety check to not do anything until a first base and blind state are received
-        if(not USE_MUJOCO_SIMULATION and self.first_message_base_arrived==False and self.first_message_joints_arrived==False):
+        if(not USE_MUJOCO_SIMULATION and self.first_message_joints_arrived==False):
             return
 
 
@@ -339,6 +353,24 @@ class Data_Collection_Node(Node):
             collection_complete = self._check_collection_complete(joints_pos, desired_joint_pos)
             if collection_complete:
                 self._save_trajectory_data()
+
+        elif(self.console.isActivated and self.console.trajectory_collection):
+            # Initialize setpoint if needed
+            if self.calibration_reference_joint_positions is None:
+                self._initialize_calibration_trajectory()
+
+            # Get desired joint positions and control gains based on collection type
+            desired_joint_pos, Kp, Kd = self._get_desired_positions_and_gains(env)
+
+            # Collect data
+            self._collect_trajectory_data(joints_pos, joints_vel, desired_joint_pos)
+
+            # Check if collection is complete            
+            collection_complete = self._check_collection_complete(joints_pos, desired_joint_pos)
+            if collection_complete:
+                self.chirp_traj_time -= 0.2 # Reduce trajectory time for next trajectory
+                if(self.chirp_traj_time < 1.0):
+                    self._save_trajectory_data()
             
         
         if USE_MUJOCO_SIMULATION:
@@ -374,20 +406,14 @@ class Data_Collection_Node(Node):
                 action[self.env.legs_tau_idx.RR] = tau.RR.reshape((3,))
                 self.env.step(action=action)
 
-        
-        # Fix convention DLS2 and send PD target
-        desired_joint_pos.FL[0] = -desired_joint_pos.FL[0]
-        desired_joint_pos.RL[0] = -desired_joint_pos.RL[0] 
 
-        trajectory_generator_msg = TrajectoryGeneratorMsg()
-        trajectory_generator_msg.joints_position = np.concatenate([desired_joint_pos.FL, desired_joint_pos.FR, desired_joint_pos.RL, desired_joint_pos.RR], axis=0).flatten()
-        
-        desired_joint_vel = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-        trajectory_generator_msg.joints_velocity = np.concatenate([desired_joint_vel.FL, desired_joint_vel.FR, desired_joint_vel.RL, desired_joint_vel.RR], axis=0).flatten()
-
-        #trajectory_generator_msg.kp = np.ones(12)*Kp
-        #trajectory_generator_msg.kd = np.ones(12)*Kd
-        self.publisher_trajectory_generator.publish(trajectory_generator_msg)
+        # Publish the desired joint positions to the trajectory generator --------------------------------
+        trajectory_generator_msg = TrajectoryGenerator()
+        trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
+        trajectory_generator_msg.joints_position = np.array([desired_joint_pos.FL, desired_joint_pos.FR, desired_joint_pos.RL, desired_joint_pos.RR]).flatten().tolist()
+        trajectory_generator_msg.joints_velocity = np.zeros(12).tolist()
+        trajectory_generator_msg.kp = (np.ones(12) * Kp).tolist()
+        trajectory_generator_msg.kd = (np.ones(12) * Kd).tolist()
         
         
         
