@@ -70,7 +70,7 @@ optimize_friction = True
 optimize_armature = True
 
 isaaclab_physics_dt = 0.005  # seconds
-frequency_collection = 100  # Hz
+frequency_collection = 200  # Hz
 
 num_iterations = 1
 num_best_candidates = 10
