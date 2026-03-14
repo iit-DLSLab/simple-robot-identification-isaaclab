@@ -7,6 +7,9 @@ Work in progress, PRs are very welcome!
 ## Run a collection
 This repo works the best with [unitree_ros2_dls](https://github.com/iit-DLSLab/unitree_ros2_dls), for unitree go2 and b2 robots. Soon, will support different arms, such as unitree z1, and agilex piper arms [piper_ros2_dls2](https://github.com/iit-DLSLab/piper_ros2_dls2) 
 
+```bash
+python3 run_collection_ros2.py
+```
 
 ## Run a calibration in IsaacLab
 
