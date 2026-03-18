@@ -14,6 +14,7 @@ np.set_printoptions(precision=3, suppress=True)
 import threading
 import copy
 import os 
+import torch
 
 # Gym and Simulation related imports
 import mujoco
@@ -100,7 +101,7 @@ class Data_Collection_Node(Node):
         
 
         # Chirp Trajectory only variables
-        self.chirp_traj_time = 4.0
+        self.chirp_traj_time = 3.0
         self.calibration_reference_calf_trajectory = None
         self.calibration_reference_thigh_trajectory = None
         self.calibration_reference_hip_trajectory = None
@@ -279,7 +280,7 @@ class Data_Collection_Node(Node):
         """Save collected trajectory data to file"""
 
         # Saving to file trajectory
-        desired_fps = CONTROL_FREQ
+        """desired_fps = CONTROL_FREQ
         data = {
             "joints_list": ["FL_hip_joint", "FL_thigh_joint", "FL_calf_joint", 
                                 "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", 
@@ -293,7 +294,23 @@ class Data_Collection_Node(Node):
         }
         # Save the data to an .npy file
         output_file = "datasets/" + config.robot + f"/traj_{self.num_traj_saved}.npy"
-        np.save(output_file, data)
+        np.save(output_file, data)"""
+
+        # HACK
+        num_steps = self.saved_actual_joints_position.shape[0]
+        duration = num_steps/CONTROL_FREQ
+        time_data = torch.linspace(0, duration, steps=num_steps, device="cpu")
+        dof_pos_buffer = torch.zeros(num_steps, 12, device="cpu")
+        dof_target_pos_buffer = torch.zeros(num_steps, 12, device="cpu")
+
+        dof_pos_buffer[:, :] = torch.from_numpy(self.saved_actual_joints_position)
+        dof_target_pos_buffer[:] = torch.from_numpy(self.saved_desired_joints_position)
+
+        torch.save({
+            "time": time_data.cpu(),
+            "dof_pos": dof_pos_buffer.cpu(),
+            "des_dof_pos": dof_target_pos_buffer.cpu(),
+        }, "datasets/" + config.robot + f"/traj_{self.num_traj_saved}.pt")
 
         self.num_traj_saved += 1
         self.saved_actual_joints_position = None
