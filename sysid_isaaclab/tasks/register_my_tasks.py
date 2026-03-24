@@ -5,7 +5,7 @@ gym.register(
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": "go2_pace_env_cfg:Go2PaceEnvCfg",
+        "env_cfg_entry_point": "tasks.go2_pace_env_cfg:Go2PaceEnvCfg",
     },
 )
 
@@ -14,6 +14,6 @@ gym.register(
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": "z1_pace_env_cfg:Z1PaceEnvCfg",
+        "env_cfg_entry_point": "tasks.z1_pace_env_cfg:Z1PaceEnvCfg",
     },
 )

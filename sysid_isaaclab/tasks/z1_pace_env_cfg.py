@@ -124,8 +124,8 @@ class Z1PaceCfg(PaceCfg):
         self.bounds_params[7:14, 1] = 7.0  # dof_damping between 0.0 - 7.0 [Nm s/rad]
         self.bounds_params[14:21, 1] = 0.5  # friction between 0.0 - 0.5
         self.bounds_params[21:28, 0] = -0.1
-        self.bounds_params[28:35, 1] = 0.1  # bias between -0.1 - 0.1 [rad]
-        self.bounds_params[35, 1] = 5.0  # delay between 0.0 - 5.0 [sim steps]
+        self.bounds_params[21:28, 1] = 0.1  # bias between -0.1 - 0.1 [rad]
+        self.bounds_params[28, 1] = 5.0  # delay between 0.0 - 5.0 [sim steps]
 
 
 @configclass
