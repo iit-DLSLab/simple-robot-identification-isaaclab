@@ -5,13 +5,14 @@ import sys
 import os 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path+"/../")
-import utility
 import config
 
 import numpy as np
 import copy
 import time
 import mujoco
+
+import torch
 
 if __name__ == '__main__':
     np.set_printoptions(precision=3, suppress=True)
@@ -53,13 +54,10 @@ if __name__ == '__main__':
         "RR_thigh_joint",
         "RR_calf_joint",
     ]
-    datasets_path = config.datasets_path
-    datasets = utility.load_datasets(datasets_path, expected_joint_order)
-    all_dataset_actual_joint_pos = datasets["all_dataset_actual_joint_pos"]
-    all_dataset_actual_joint_vel = datasets["all_dataset_actual_joint_vel"]
-    all_dataset_desired_joint_pos = datasets["all_dataset_desired_joint_pos"]
-    all_dataset_desired_joint_vel = datasets["all_dataset_desired_joint_vel"]
-    dataset_fps = datasets["dataset_fps"]
+    datasets_path = dir_path + "/" + config.robot + "/traj_0.pt"
+    data = torch.load(datasets_path)
+    dataset_actual_joint_pos = data["dof_pos"]
+    dataset_time = data["time"]
 
     timestep = 0
 
@@ -67,52 +65,22 @@ if __name__ == '__main__':
         
         print(f"Running timestep: {timestep}")
         
-        if(timestep >= all_dataset_actual_joint_pos.shape[0] - 1):
+        if(timestep >= dataset_actual_joint_pos.shape[0] - 1):
             print("End of dataset reached, resetting to the beginning.")
             break
         
-        joint_pos = all_dataset_actual_joint_pos[timestep]
+        joint_pos = dataset_actual_joint_pos[timestep]
         
         env.mjData.qpos[0:3] = copy.deepcopy(freezed_base_position)
         env.mjData.qpos[3:7] = copy.deepcopy(freezed_base_orientation)
         env.mjData.qvel[0:3] = copy.deepcopy(freezed_base_linear_velocity)
         env.mjData.qvel[3:6] = copy.deepcopy(freezed_base_angular_velocity)
+        env.mjData.qpos[7:19] = copy.deepcopy(joint_pos)
         env.mjModel.opt.timestep = simulation_dt
-
-        if((joint_pos == np.array([-10.0]*joint_pos.shape[0])).all()):
-            print("End of motion reached, reset initial robot configuration.")
-            # reset the environment
-            
-            
-            joint_pos = all_dataset_actual_joint_pos[timestep+1]
-            env.mjData.qpos[7:] = copy.deepcopy(joint_pos)
-            env.mjData.qvel[6:] = copy.deepcopy(joint_pos*0.0)
-
-            """mujoco.mj_forward(env.mjModel, env.mjData) 
-            env.render()
-            breakpoint()
-            time.sleep(2.0)"""
-        
-        else:
-            
-            joint_pos = all_dataset_actual_joint_pos[timestep+1]
-            joint_vel = all_dataset_actual_joint_vel[timestep+1]
-
-            """desired_joint_pos = torch.tensor(
-                all_dataset_desired_joint_pos[timestep], dtype=torch.float32, device=env.device
-            )"""
-
-            if((joint_pos == np.array([-10.0]*joint_pos.shape[0])).all()):
-                print("##################")
-            else:
-                env.mjData.qpos[7:] = copy.deepcopy(joint_pos)
-                env.mjData.qvel[6:] = copy.deepcopy(joint_pos*0.0)
-            
 
 
         mujoco.mj_forward(env.mjModel, env.mjData) 
         timestep += 1
 
         env.render()
-        #time.sleep(1.0 / dataset_fps)
-        time.sleep(0.2)
+        #time.sleep(float(dataset_time[timestep]))
