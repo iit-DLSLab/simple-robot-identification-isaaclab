@@ -1,14 +1,14 @@
 ## Overwiew
 
-A joint calibration routine for IsaacLab and Mujoco, to estimate leg motors parameters. It provides scripts for data collection on the real robot (the robot should be in air with the base fixed). 
+A joint calibration routine for IsaacLab and Mujoco, to estimate leg motor parameters. It provides scripts for data collection on the real robot (the robot should be in the air with the base fixed). 
 This repo interfaces directly with [Pace](https://github.com/leggedrobotics/pace-sim2real) and the new sys-id functionality of Mujoco.
 
 
-Work in progress for supporting arms and mujoco identification, PRs are very welcome!
+Work in progress for supporting mujoco identification, PRs are very welcome!
 
 
 ## Run a collection
-This repo works the best with [unitree_ros2_dls](https://github.com/iit-DLSLab/unitree_ros2_dls) for communicating with unitree go2 and b2 robots. Soon, will support different arms, such as unitree z1, and agilex piper arms using - the last using [piper_ros2_dls2](https://github.com/iit-DLSLab/piper_ros2_dls2).
+This repo works best with [unitree-ros2-dls](https://github.com/iit-DLSLab/unitree-ros2-dls) for communicating with unitree go2, b2, a2, and z1 robots. Soon, will support agilex piper arms using [piper-ros2-dls2](https://github.com/iit-DLSLab/piper-ros2-dls2).
 
 ```bash
 python3 run_collection_quadruped_ros2.py
