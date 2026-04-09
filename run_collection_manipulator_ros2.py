@@ -71,7 +71,7 @@ class Data_Collection_Node(Node):
 
 
         # Create the environment -----------------------------------------------------------
-        self.mjModel = mujoco.MjModel.from_xml_path(dir_path + "/robot_model/" + config.robot + "/" + config.robot + ".xml")
+        self.mjModel = mujoco.MjModel.from_xml_path(dir_path + "/robot_model/" + config.robot + "/scene_flat.xml")
         self.mjData = mujoco.MjData(self.mjModel)
 
         if(USE_MUJOCO_RENDER):
@@ -218,23 +218,6 @@ class Data_Collection_Node(Node):
 
     def _save_trajectory_data(self):
         """Save collected trajectory data to file"""
-
-        # Saving to file trajectory
-        """desired_fps = CONTROL_FREQ
-        data = {
-            "joints_list": ["FL_hip_joint", "FL_thigh_joint", "FL_calf_joint", 
-                                "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", 
-                                "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint", 
-                                "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint"],
-            "actual_joints_position": self.saved_actual_joints_position,
-            "actual_joints_velocity": self.saved_actual_joints_velocity,
-            "desired_joints_position": self.saved_desired_joints_position,
-            "desired_joints_velocity": self.saved_desired_joints_velocity,
-            "fps": desired_fps,
-        }
-        # Save the data to an .npy file
-        output_file = "datasets/" + config.robot + f"/traj_{self.num_traj_saved}.npy"
-        np.save(output_file, data)"""
 
         # HACK
         num_steps = self.saved_actual_joints_position.shape[0]

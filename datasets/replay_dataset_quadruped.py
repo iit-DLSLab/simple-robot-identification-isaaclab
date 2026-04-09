@@ -4,34 +4,31 @@ from gym_quadruped.quadruped_env import QuadrupedEnv
 import sys
 import os 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path+"/../mujoco/")
 sys.path.append(dir_path+"/../")
+
+import mujoco
+import mujoco.viewer
 import config
 
 import numpy as np
 import copy
 import time
-import mujoco
-
 import torch
 
 if __name__ == '__main__':
     np.set_printoptions(precision=3, suppress=True)
 
-    robot_name = config.robot
-    simulation_dt = 0.002
+    # Create the environment -----------------------------------------------------------
+    mjModel = mujoco.MjModel.from_xml_path(dir_path + "/../robot_model/" + config.robot + "/scene_flat.xml")
+    mjData = mujoco.MjData(mjModel)
 
-
-    # Create the quadruped robot environment -----------------------------------------------------------
-    env = QuadrupedEnv(
-        robot=robot_name,
-        scene="flat",
-        sim_dt=simulation_dt,
-        base_vel_command_type="human",  # "forward", "random", "forward+rotate", "human"
+    viewer = mujoco.viewer.launch_passive(
+            mjModel,
+            mjData,
+            show_left_ui=False,
+            show_right_ui=False,
     )
-
-
-    env.reset(random=False)
-    env.render()  # Pass in the first render call any mujoco.viewer.KeyCallbackType
 
     freezed_base_position = np.array([0, 0, 0.4])
     freezed_base_orientation = np.array([1, 0, 0, 0])
@@ -57,16 +54,20 @@ if __name__ == '__main__':
         
         joint_pos = dataset_actual_joint_pos[timestep]
         
-        env.mjData.qpos[0:3] = copy.deepcopy(freezed_base_position)
-        env.mjData.qpos[3:7] = copy.deepcopy(freezed_base_orientation)
-        env.mjData.qvel[0:3] = copy.deepcopy(freezed_base_linear_velocity)
-        env.mjData.qvel[3:6] = copy.deepcopy(freezed_base_angular_velocity)
-        env.mjData.qpos[7:19] = copy.deepcopy(joint_pos)
-        env.mjModel.opt.timestep = simulation_dt
+        mjData.qpos[0:3] = copy.deepcopy(freezed_base_position)
+        mjData.qpos[3:7] = copy.deepcopy(freezed_base_orientation)
+        mjData.qvel[0:3] = copy.deepcopy(freezed_base_linear_velocity)
+        mjData.qvel[3:6] = copy.deepcopy(freezed_base_angular_velocity)
+        mjData.qpos[7:19] = copy.deepcopy(joint_pos)
+
+        if(timestep > 0):
+            mjModel.opt.timestep = dataset_time[timestep] - dataset_time[timestep-1]
+        else:
+            mjModel.opt.timestep = dataset_time[timestep]
 
 
-        mujoco.mj_forward(env.mjModel, env.mjData) 
+        mujoco.mj_forward(mjModel, mjData) 
         timestep += 1
 
-        env.render()
+        viewer.sync()
         #time.sleep(float(dataset_time[timestep]))

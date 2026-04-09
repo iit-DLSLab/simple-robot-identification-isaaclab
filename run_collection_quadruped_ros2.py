@@ -16,10 +16,15 @@ import copy
 import os 
 import torch
 
-# Gym and Simulation related imports
+import sys
+import os 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path+"/mujoco/")
+sys.path.append(dir_path+"/../")
+sys.path.append(dir_path+"/../scripts/rsl_rl")
+
 import mujoco
-from gym_quadruped.quadruped_env import QuadrupedEnv
-from gym_quadruped.utils.quadruped_utils import LegsAttr
+import mujoco.viewer
 import config
 
 
@@ -30,8 +35,8 @@ os.system("renice -n -21 -p " + str(pid))
 os.system("echo -20 > /proc/" + str(pid) + "/autogroup")
 #for real time, launch it with chrt -r 99 python3 run_controller.py
 
-USE_MUJOCO_RENDER = False
-USE_MUJOCO_SIMULATION = False
+USE_MUJOCO_RENDER = True
+USE_MUJOCO_SIMULATION = True
 
 
 CONTROL_FREQ = config.frequency_collection # Hz 
@@ -65,40 +70,29 @@ class Data_Collection_Node(Node):
         self.joint_velocities = np.zeros(12)
         self.feet_contact = np.zeros(4)
 
-        # Mujoco env
-        robot_name = config.robot
-        simulation_dt = 0.002
 
+        # Create the environment -----------------------------------------------------------
+        self.mjModel = mujoco.MjModel.from_xml_path(dir_path + "/robot_model/" + config.robot + "/scene_flat.xml")
+        self.mjData = mujoco.MjData(self.mjModel)
 
-        # Create the quadruped robot environment -----------------------------------------------------------
-        self.env = QuadrupedEnv(
-            robot=robot_name,
-            scene="flat",
-            sim_dt=simulation_dt,
-            base_vel_command_type="human",  # "forward", "random", "forward+rotate", "human"
-        )
-        self.env.reset(random=False)
-
-
-        
-        self.last_render_time = time.time()
-        if USE_MUJOCO_RENDER:
-            self.env.render()
-
+        if(USE_MUJOCO_RENDER):
+            self.viewer = mujoco.viewer.launch_passive(
+                self.mjModel,
+                self.mjData,
+                show_left_ui=False,
+                show_right_ui=False,
+            )
+            self.last_render_time = time.time()
         
 
-        self.stand_up_and_down_actions = LegsAttr(*[np.zeros((1, int(self.env.mjModel.nu/4))) for _ in range(4)])
-        keyframe_id = mujoco.mj_name2id(self.env.mjModel, mujoco.mjtObj.mjOBJ_KEY, "down")
-        goDown_qpos = self.env.mjModel.key_qpos[keyframe_id]
-        self.stand_up_and_down_actions.FL = goDown_qpos[7:10]
-        self.stand_up_and_down_actions.FR = goDown_qpos[10:13]
-        self.stand_up_and_down_actions.RL = goDown_qpos[13:16]
-        self.stand_up_and_down_actions.RR = goDown_qpos[16:29]
-
-        self.stand_up_and_down_actions.FL[2] += 0.3
-        self.stand_up_and_down_actions.FR[2] += 0.3
-        self.stand_up_and_down_actions.RL[2] += 0.3
-        self.stand_up_and_down_actions.RR[2] += 0.3
+        self.stand_up_and_down_actions = np.zeros(12)
+        keyframe_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "down")
+        goDown_qpos = self.mjModel.key_qpos[keyframe_id]
+        self.stand_up_and_down_actions = goDown_qpos[7:29]
+        self.stand_up_and_down_actions[2] += 0.3
+        self.stand_up_and_down_actions[5] += 0.3
+        self.stand_up_and_down_actions[8] += 0.3
+        self.stand_up_and_down_actions[11] += 0.3
         
         
         self.Kp_stand_up_and_down = config.Kp_walking
@@ -115,9 +109,9 @@ class Data_Collection_Node(Node):
         self.hip_setpoint2 = 0.6
         self.thigh_setpoint2 = 0.5
         self.calf_setpoin2 = -1.2
-        self.hip_setpoint1 = self.stand_up_and_down_actions.FL[0]
-        self.thigh_setpoint1 = self.stand_up_and_down_actions.FL[1]
-        self.calf_setpoint1 = self.stand_up_and_down_actions.FL[2]
+        self.hip_setpoint1 = self.stand_up_and_down_actions[0]
+        self.thigh_setpoint1 = self.stand_up_and_down_actions[1]
+        self.calf_setpoint1 = self.stand_up_and_down_actions[2]
         
         
         self.saved_actual_joints_position = None
@@ -125,7 +119,6 @@ class Data_Collection_Node(Node):
         self.saved_desired_joints_position = None
         self.saved_desired_joints_velocity = None
         self.num_traj_saved = 0
-
 
 
         # Interactive Command Line ----------------------------
@@ -150,11 +143,11 @@ class Data_Collection_Node(Node):
         hip_setpoint = np.random.uniform(-0.0, 0.5)
         thigh_setpoint = np.random.uniform(-1.0, 0.5)
         calf_setpoint = np.random.uniform(-0., 1.5)
-        self.calibration_reference_joint_positions = LegsAttr(*[np.zeros((1, int(self.env.mjModel.nu/4))) for _ in range(4)])
-        self.calibration_reference_joint_positions.FL = np.array([0.0+hip_setpoint, 1.21+thigh_setpoint, -2.794+calf_setpoint])
-        self.calibration_reference_joint_positions.FR = np.array([0.0-hip_setpoint, 1.21+thigh_setpoint, -2.794+calf_setpoint])
-        self.calibration_reference_joint_positions.RL = np.array([0.0+hip_setpoint, 1.21+thigh_setpoint, -2.794+calf_setpoint])
-        self.calibration_reference_joint_positions.RR = np.array([0.0-hip_setpoint, 1.21+thigh_setpoint, -2.794+calf_setpoint])
+        self.calibration_reference_joint_positions = np.zeros((4, 3))
+        self.calibration_reference_joint_positions[0] = np.array([0.0+hip_setpoint, 1.21+thigh_setpoint, -2.794+calf_setpoint])
+        self.calibration_reference_joint_positions[1] = np.array([0.0-hip_setpoint, 1.21+thigh_setpoint, -2.794+calf_setpoint])
+        self.calibration_reference_joint_positions[2] = np.array([0.0+hip_setpoint, 1.21+thigh_setpoint, -2.794+calf_setpoint])
+        self.calibration_reference_joint_positions[3] = np.array([0.0-hip_setpoint, 1.21+thigh_setpoint, -2.794+calf_setpoint])
         self.start_collection_time = time.time()
 
     def _initialize_calibration_trajectory(self):
@@ -186,15 +179,15 @@ class Data_Collection_Node(Node):
         self.start_collection_time = time.time()
 
 
-    def _get_desired_positions_and_gains(self, env):
+    def _get_desired_positions_and_gains(self, ):
         """Get desired joint positions and control gains based on collection type"""
         if self.console.setpoint_collection:
             # Setpoint collection: maintain target position
-            desired_joint_pos = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-            desired_joint_pos.FL = copy.deepcopy(self.calibration_reference_joint_positions.FL)
-            desired_joint_pos.FR = copy.deepcopy(self.calibration_reference_joint_positions.FR)
-            desired_joint_pos.RL = copy.deepcopy(self.calibration_reference_joint_positions.RL)
-            desired_joint_pos.RR = copy.deepcopy(self.calibration_reference_joint_positions.RR)
+            desired_joint_pos = np.zeros((4, 3))
+            desired_joint_pos[0] = copy.deepcopy(self.calibration_reference_joint_positions[0])
+            desired_joint_pos[1] = copy.deepcopy(self.calibration_reference_joint_positions[1])
+            desired_joint_pos[2] = copy.deepcopy(self.calibration_reference_joint_positions[2])
+            desired_joint_pos[3] = copy.deepcopy(self.calibration_reference_joint_positions[3])
             Kp = self.Kp_stand_up_and_down
             Kd = self.Kd_stand_up_and_down
             
@@ -209,20 +202,20 @@ class Data_Collection_Node(Node):
                 # Free falling!!
                 Kp = 0.0
                 Kd = 0.0
-                desired_joint_pos = LegsAttr(*[np.zeros((int(env.mjModel.nu/4, ))) for _ in range(4)])
-                desired_joint_pos.FL = np.zeros((int(env.mjModel.nu/4),)) + 20.
-                desired_joint_pos.FR = np.zeros((int(env.mjModel.nu/4),)) + 20.
-                desired_joint_pos.RL = np.zeros((int(env.mjModel.nu/4),)) + 20.
-                desired_joint_pos.RR = np.zeros((int(env.mjModel.nu/4),)) + 20.
+                desired_joint_pos = np.zeros((4, 3))
+                desired_joint_pos[0] = np.zeros((1, int(self.mjModel.nu/4))) + 20.
+                desired_joint_pos[1] = np.zeros((1, int(self.mjModel.nu/4))) + 20.
+                desired_joint_pos[2] = np.zeros((1, int(self.mjModel.nu/4))) + 20.
+                desired_joint_pos[3] = np.zeros((1, int(self.mjModel.nu/4))) + 20.
             else:
                 # Reach the target
                 Kp = self.Kp_stand_up_and_down
                 Kd = self.Kd_stand_up_and_down
-                desired_joint_pos = LegsAttr(*[np.zeros((int(env.mjModel.nu/4, ))) for _ in range(4)])
-                desired_joint_pos.FL = copy.deepcopy(self.calibration_reference_joint_positions.FL)
-                desired_joint_pos.FR = copy.deepcopy(self.calibration_reference_joint_positions.FR)
-                desired_joint_pos.RL = copy.deepcopy(self.calibration_reference_joint_positions.RL)
-                desired_joint_pos.RR = copy.deepcopy(self.calibration_reference_joint_positions.RR)
+                desired_joint_pos = np.zeros((4, 3))
+                desired_joint_pos[0] = copy.deepcopy(self.calibration_reference_joint_positions[0])
+                desired_joint_pos[1] = copy.deepcopy(self.calibration_reference_joint_positions[1])
+                desired_joint_pos[2] = copy.deepcopy(self.calibration_reference_joint_positions[2])
+                desired_joint_pos[3] = copy.deepcopy(self.calibration_reference_joint_positions[3])
         
         elif self.console.trajectory_collection:
             # Trajectory collection: follow the reference trajectory
@@ -230,28 +223,27 @@ class Data_Collection_Node(Node):
             Kd = self.Kd_stand_up_and_down
 
             time_traj = self.start_collection_time - time.time()
-            desired_joint_pos = LegsAttr(*[np.zeros((int(env.mjModel.nu/4, ))) for _ in range(4)])
-            desired_joint_pos.FL[0] = self.calibration_reference_hip_trajectory[int((time_traj/self.chirp_traj_time)*100)]
-            desired_joint_pos.FL[1] = self.calibration_reference_thigh_trajectory[int((time_traj/self.chirp_traj_time)*100)]
-            desired_joint_pos.FL[2] = self.calibration_reference_calf_trajectory[int((time_traj/self.chirp_traj_time)*100)]
-            desired_joint_pos.FR = copy.deepcopy(desired_joint_pos.FL)
-            desired_joint_pos.FR[0] = -desired_joint_pos.FR[0]
-            desired_joint_pos.RL = copy.deepcopy(desired_joint_pos.FL)
-            desired_joint_pos.RR = copy.deepcopy(desired_joint_pos.FL)
-            desired_joint_pos.RR[0] = -desired_joint_pos.RR[0]
-
+            desired_joint_pos = np.zeros((4, 3))
+            desired_joint_pos[0, 0] = self.calibration_reference_hip_trajectory[int((time_traj/self.chirp_traj_time)*100)]
+            desired_joint_pos[0, 1] = self.calibration_reference_thigh_trajectory[int((time_traj/self.chirp_traj_time)*100)]
+            desired_joint_pos[0, 2] = self.calibration_reference_calf_trajectory[int((time_traj/self.chirp_traj_time)*100)]
+            desired_joint_pos[1] = copy.deepcopy(desired_joint_pos[0])
+            desired_joint_pos[1, 0] = -desired_joint_pos[1, 0]
+            desired_joint_pos[2] = copy.deepcopy(desired_joint_pos[0])
+            desired_joint_pos[3] = copy.deepcopy(desired_joint_pos[0])
+            desired_joint_pos[3, 0] = -desired_joint_pos[3, 0]  
         return desired_joint_pos, Kp, Kd
 
     def _collect_trajectory_data(self, joints_pos, joints_vel, desired_joint_pos):
         """Collect trajectory data by concatenating and storing joint information"""
-        concatenated_actual_joints_position = np.concatenate([joints_pos.FL, joints_pos.FR,
-                                                            joints_pos.RL, joints_pos.RR])
-        concatenated_actual_joints_velocity = np.concatenate([joints_vel.FL, joints_vel.FR,
-                                                            joints_vel.RL, joints_vel.RR])
-        concatenated_desired_joints_position = np.concatenate([desired_joint_pos.FL, desired_joint_pos.FR,
-                                                            desired_joint_pos.RL, desired_joint_pos.RR])
-        concatenated_desired_joints_velocity = np.concatenate([joints_vel.FL*0.0, joints_vel.FR*0.0,
-                                                            joints_vel.RL*0.0, joints_vel.RR*0.0])
+        concatenated_actual_joints_position = np.concatenate([joints_pos[0], joints_pos[1],
+                                                            joints_pos[2], joints_pos[3]])
+        concatenated_actual_joints_velocity = np.concatenate([joints_vel[0], joints_vel[1],
+                                                            joints_vel[2], joints_vel[3]])
+        concatenated_desired_joints_position = np.concatenate([desired_joint_pos[0], desired_joint_pos[1],
+                                                            desired_joint_pos[2], desired_joint_pos[3]])
+        concatenated_desired_joints_velocity = np.concatenate([joints_vel[0]*0.0, joints_vel[1]*0.0,
+                                                            joints_vel[2]*0.0, joints_vel[3]*0.0])
 
         if self.saved_actual_joints_position is None:
             self.saved_actual_joints_position = concatenated_actual_joints_position
@@ -268,10 +260,10 @@ class Data_Collection_Node(Node):
         """Check if data collection is complete based on collection type"""
         if self.console.setpoint_collection:
             # Complete when target is reached or timeout
-            target_reached = (np.linalg.norm(desired_joint_pos.FL - joints_pos.FL) < 0.1 and
-                            np.linalg.norm(desired_joint_pos.FR - joints_pos.FR) < 0.1 and
-                            np.linalg.norm(desired_joint_pos.RL - joints_pos.RL) < 0.1 and
-                            np.linalg.norm(desired_joint_pos.RR - joints_pos.RR) < 0.1)
+            target_reached = (np.linalg.norm(desired_joint_pos[0] - joints_pos[0]) < 0.1 and
+                            np.linalg.norm(desired_joint_pos[1] - joints_pos[1]) < 0.1 and
+                            np.linalg.norm(desired_joint_pos[2] - joints_pos[2]) < 0.1 and
+                            np.linalg.norm(desired_joint_pos[3] - joints_pos[3]) < 0.1)
             timeout = time.time() - self.start_collection_time > 2.0
             return target_reached or timeout
             
@@ -285,23 +277,6 @@ class Data_Collection_Node(Node):
 
     def _save_trajectory_data(self):
         """Save collected trajectory data to file"""
-
-        # Saving to file trajectory
-        """desired_fps = CONTROL_FREQ
-        data = {
-            "joints_list": ["FL_hip_joint", "FL_thigh_joint", "FL_calf_joint", 
-                                "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", 
-                                "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint", 
-                                "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint"],
-            "actual_joints_position": self.saved_actual_joints_position,
-            "actual_joints_velocity": self.saved_actual_joints_velocity,
-            "desired_joints_position": self.saved_desired_joints_position,
-            "desired_joints_velocity": self.saved_desired_joints_velocity,
-            "fps": desired_fps,
-        }
-        # Save the data to an .npy file
-        output_file = "datasets/" + config.robot + f"/traj_{self.num_traj_saved}.npy"
-        np.save(output_file, data)"""
 
         # HACK
         num_steps = self.saved_actual_joints_position.shape[0]
@@ -343,45 +318,42 @@ class Data_Collection_Node(Node):
 
         # Update the mujoco model
         if(not USE_MUJOCO_SIMULATION):
-            self.env.mjData.qpos[0:3] = copy.deepcopy(self.position)
-            self.env.mjData.qpos[3:7] = copy.deepcopy(self.orientation)
-            self.env.mjData.qvel[0:3] = copy.deepcopy(self.linear_velocity)
-            self.env.mjData.qvel[3:6] = copy.deepcopy(self.angular_velocity)
-            self.env.mjData.qpos[7:] = copy.deepcopy(self.joint_positions)
-            self.env.mjData.qvel[6:] = copy.deepcopy(self.joint_velocities)
-            self.env.mjModel.opt.timestep = simulation_dt
-            mujoco.mj_forward(self.env.mjModel, self.env.mjData)  
+            self.mjData.qpos[0:3] = copy.deepcopy(self.position)
+            self.mjData.qpos[3:7] = copy.deepcopy(self.orientation)
+            self.mjData.qvel[0:3] = copy.deepcopy(self.linear_velocity)
+            self.mjData.qvel[3:6] = copy.deepcopy(self.angular_velocity)
+            self.mjData.qpos[7:] = copy.deepcopy(self.joint_positions)
+            self.mjData.qvel[6:] = copy.deepcopy(self.joint_velocities)
+            self.mjModel.opt.timestep = simulation_dt
+            mujoco.mj_forward(self.mjModel, self.mjData)  
         else:
-            self.env.mjData.qpos[0:3] = np.array([0, 0, 0.4])
-            self.env.mjData.qpos[3:7] = np.array([1, 0, 0, 0])
-            self.env.mjData.qvel[0:3] = np.array([0, 0, 0.])
-            self.env.mjData.qvel[3:6] = np.array([0, 0, 0.0])
+            self.mjData.qpos[0:3] = np.array([0, 0, 0.4])
+            self.mjData.qpos[3:7] = np.array([1, 0, 0, 0])
+            self.mjData.qvel[0:3] = np.array([0, 0, 0.])
+            self.mjData.qvel[3:6] = np.array([0, 0, 0.0])
 
 
-        env = self.env
-        
-        qpos, qvel = env.mjData.qpos, env.mjData.qvel
+        qpos, qvel = self.mjData.qpos, self.mjData.qvel
 
 
-        joints_pos = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-        joints_pos.FL = qpos[env.legs_qpos_idx.FL]
-        joints_pos.FR = qpos[env.legs_qpos_idx.FR]
-        joints_pos.RL = qpos[env.legs_qpos_idx.RL]
-        joints_pos.RR = qpos[env.legs_qpos_idx.RR]
+        joints_pos = np.zeros((4, 3))
+        joints_pos[0] = qpos[7:10]
+        joints_pos[1] = qpos[10:13]
+        joints_pos[2] = qpos[13:16]
+        joints_pos[3] = qpos[16:19]
+
+        joints_vel = np.zeros((4, 3))
+        joints_vel[0] = qvel[6:9]
+        joints_vel[1] = qvel[9:12]
+        joints_vel[2] = qvel[12:15]
+        joints_vel[3] = qvel[15:18]
     
-        joints_vel = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-        joints_vel.FL = qvel[env.legs_qvel_idx.FL]
-        joints_vel.FR = qvel[env.legs_qvel_idx.FR]
-        joints_vel.RL = qvel[env.legs_qvel_idx.RL]
-        joints_vel.RR = qvel[env.legs_qvel_idx.RR]
-    
-
         if(not self.console.isActivated):
-            desired_joint_pos = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-            desired_joint_pos.FL = self.stand_up_and_down_actions.FL
-            desired_joint_pos.FR = self.stand_up_and_down_actions.FR
-            desired_joint_pos.RL = self.stand_up_and_down_actions.RL
-            desired_joint_pos.RR = self.stand_up_and_down_actions.RR
+            desired_joint_pos = np.zeros((4, 3))
+            desired_joint_pos[0] = self.stand_up_and_down_actions[0:3]
+            desired_joint_pos[1] = self.stand_up_and_down_actions[3:6]
+            desired_joint_pos[2] = self.stand_up_and_down_actions[6:9]
+            desired_joint_pos[3] = self.stand_up_and_down_actions[9:12]
 
             # Impedence Loop
             Kp = self.Kp_stand_up_and_down
@@ -395,7 +367,7 @@ class Data_Collection_Node(Node):
                 self._initialize_calibration_setpoint()
 
             # Get desired joint positions and control gains based on collection type
-            desired_joint_pos, Kp, Kd = self._get_desired_positions_and_gains(env)
+            desired_joint_pos, Kp, Kd = self._get_desired_positions_and_gains()
             
             # Collect data
             self._collect_trajectory_data(joints_pos, joints_vel, desired_joint_pos)
@@ -412,7 +384,7 @@ class Data_Collection_Node(Node):
                 self._initialize_calibration_trajectory()
 
             # Get desired joint positions and control gains based on collection type
-            desired_joint_pos, Kp, Kd = self._get_desired_positions_and_gains(env)
+            desired_joint_pos, Kp, Kd = self._get_desired_positions_and_gains()
 
             # Collect data
             self._collect_trajectory_data(joints_pos, joints_vel, desired_joint_pos)
@@ -429,11 +401,11 @@ class Data_Collection_Node(Node):
                     self.console.trajectory_collection = False
                     print("Trajectory collection completed.")
         else:
-            desired_joint_pos = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-            desired_joint_pos.FL = self.stand_up_and_down_actions.FL
-            desired_joint_pos.FR = self.stand_up_and_down_actions.FR
-            desired_joint_pos.RL = self.stand_up_and_down_actions.RL
-            desired_joint_pos.RR = self.stand_up_and_down_actions.RR
+            desired_joint_pos = np.zeros((4, 3))
+            desired_joint_pos[0] = self.stand_up_and_down_actions[0:3]
+            desired_joint_pos[1] = self.stand_up_and_down_actions[3:6]
+            desired_joint_pos[2] = self.stand_up_and_down_actions[6:9]
+            desired_joint_pos[3] = self.stand_up_and_down_actions[9:12]
 
             # Impedence Loop
             Kp = self.Kp_stand_up_and_down*0.0
@@ -442,42 +414,39 @@ class Data_Collection_Node(Node):
         
         if USE_MUJOCO_SIMULATION:
             for j in range(10): #Hardcoded for now, if RL is 50Hz, this runs the simulation at 500Hz
-                qpos, qvel = env.mjData.qpos, env.mjData.qvel
-                joints_pos.FL = qpos[env.legs_qpos_idx.FL]
-                joints_pos.FR = qpos[env.legs_qpos_idx.FR]
-                joints_pos.RL = qpos[env.legs_qpos_idx.RL]
-                joints_pos.RR = qpos[env.legs_qpos_idx.RR]
-            
-                joints_vel.FL = qvel[env.legs_qvel_idx.FL]
-                joints_vel.FR = qvel[env.legs_qvel_idx.FR]
-                joints_vel.RL = qvel[env.legs_qvel_idx.RL]
-                joints_vel.RR = qvel[env.legs_qvel_idx.RR]
+                qpos, qvel = self.mjData.qpos, self.mjData.qvel
+                joints_pos[0] = qpos[7:10]
+                joints_pos[1] = qpos[10:13]
+                joints_pos[2] = qpos[13:16]
+                joints_pos[3] = qpos[16:19]
 
-                error_joints_pos = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-                error_joints_pos.FL = desired_joint_pos.FL - joints_pos.FL
-                error_joints_pos.FR = desired_joint_pos.FR - joints_pos.FR
-                error_joints_pos.RL = desired_joint_pos.RL - joints_pos.RL
-                error_joints_pos.RR = desired_joint_pos.RR - joints_pos.RR
+                joints_vel[0] = qvel[6:9]
+                joints_vel[1] = qvel[9:12]
+                joints_vel[2] = qvel[12:15]
+                joints_vel[3] = qvel[15:18]
+
+                error_joints_pos = np.zeros((4, 3))
+                error_joints_pos[0] = desired_joint_pos[0] - joints_pos[0]
+                error_joints_pos[1] = desired_joint_pos[1] - joints_pos[1]
+                error_joints_pos[2] = desired_joint_pos[2] - joints_pos[2]
+                error_joints_pos[3] = desired_joint_pos[3] - joints_pos[3]
                 
-                tau = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-                tau.FL = Kp * (error_joints_pos.FL) - Kd * joints_vel.FL
-                tau.FR = Kp * (error_joints_pos.FR) - Kd * joints_vel.FR
-                tau.RL = Kp * (error_joints_pos.RL) - Kd * joints_vel.RL
-                tau.RR = Kp * (error_joints_pos.RR) - Kd * joints_vel.RR
-
-
-                action = np.zeros(self.env.mjModel.nu)
-                action[self.env.legs_tau_idx.FL] = tau.FL.reshape((3,))
-                action[self.env.legs_tau_idx.FR] = tau.FR.reshape((3,))
-                action[self.env.legs_tau_idx.RL] = tau.RL.reshape((3,))
-                action[self.env.legs_tau_idx.RR] = tau.RR.reshape((3,))
-                self.env.step(action=action)
+                tau = np.zeros((4, 3))
+                tau[0] = Kp * (error_joints_pos[0]) - Kd * joints_vel[0]
+                tau[1] = Kp * (error_joints_pos[1]) - Kd * joints_vel[1]
+                tau[2] = Kp * (error_joints_pos[2]) - Kd * joints_vel[2]
+                tau[3] = Kp * (error_joints_pos[3]) - Kd * joints_vel[3]
+                
+                action = np.zeros(self.mjModel.nu)
+                action = tau.flatten()
+                self.mjData.ctrl = action
+                mujoco.mj_step(self.mjModel, self.mjData)
 
 
         # Publish the desired joint positions to the trajectory generator --------------------------------
         trajectory_generator_msg = TrajectoryGenerator()
         trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
-        trajectory_generator_msg.joints_position = np.array([desired_joint_pos.FL, desired_joint_pos.FR, desired_joint_pos.RL, desired_joint_pos.RR]).flatten().tolist()
+        trajectory_generator_msg.joints_position = np.array([desired_joint_pos[0], desired_joint_pos[1], desired_joint_pos[2], desired_joint_pos[3]]).flatten().tolist()
         trajectory_generator_msg.joints_velocity = np.zeros(12).tolist()
         trajectory_generator_msg.kp = (np.ones(12) * Kp).tolist()
         trajectory_generator_msg.kd = (np.ones(12) * Kd).tolist()
@@ -489,9 +458,8 @@ class Data_Collection_Node(Node):
         if USE_MUJOCO_RENDER:
             RENDER_FREQ = 30
             # Render only at a certain frequency -----------------------------------------------------------------
-            if time.time() - self.last_render_time > 1.0 / RENDER_FREQ or self.env.step_num == 1:
-                self.env.render()
-                self.last_render_time = time.time()
+            if time.time() - self.last_render_time > 1.0 / RENDER_FREQ:
+                self.viewer.sync()
 
 
 
