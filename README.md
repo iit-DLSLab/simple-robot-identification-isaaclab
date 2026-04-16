@@ -4,7 +4,7 @@ A joint calibration routine for IsaacLab and Mujoco, to estimate leg motor param
 This repo interfaces directly with [Pace](https://github.com/leggedrobotics/pace-sim2real) and the new sys-id functionality of Mujoco.
 
 
-Work in progress for supporting mujoco identification, PRs are very welcome (search for **TODO** in the issue, or add what you like)!
+Work in progress for supporting mujoco identification!
 
 
 The models (usd and xml) identified so far can be found in the folder **robot_model**. 
@@ -34,6 +34,10 @@ python3 datasets/replay_dataset_manipulator.py
 ```bash
 python3 sysid_isaaclab/my_fit.py --headless
 ```
+
+## Contribute
+
+PRs are very welcome (search for **TODO** in the issue, or add what you like)!
 
 
 ## Maintainer
