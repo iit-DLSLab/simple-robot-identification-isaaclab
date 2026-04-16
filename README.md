@@ -35,7 +35,7 @@ python3 datasets/replay_dataset_manipulator.py
 python3 sysid_isaaclab/my_fit.py --headless
 ```
 
-## How to Contribute
+## How to contribute
 
 PRs are very welcome (search for **TODO** in the issue, or add what you like)!
 
