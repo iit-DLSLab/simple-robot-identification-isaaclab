@@ -23,7 +23,7 @@ python3 run_collection_manipulator_ros2.py
 modifying inside USE_MUJOCO_RENDER and USE_MUJOCO_SIMULATION depending on your usecase
 
 
-3. Visualize your trajectory runnining
+3. Visualize your trajectory running
 ```bash
 python3 datasets/replay_dataset_quadruped.py
 python3 datasets/replay_dataset_manipulator.py
