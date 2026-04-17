@@ -242,6 +242,8 @@ class Data_Collection_Node(Node):
             "des_dof_pos": dof_target_pos_buffer.cpu(),
             "des_dof_vel": dof_target_vel_buffer.cpu(),
             "des_dof_torque": dof_target_commanded_torque_buffer.cpu(),
+            "kp": self.Kp,
+            "kd": self.Kd,
         }, "datasets/" + config.robot + f"/traj_{self.num_traj_saved}.pt")
 
         self.num_traj_saved += 1
@@ -316,11 +318,9 @@ class Data_Collection_Node(Node):
 
         
         if USE_MUJOCO_SIMULATION:
-            for j in range(10): #Hardcoded for now, if RL is 50Hz, this runs the simulation at 500Hz
-
-                error_joints_pos = desired_joint_pos - joints_pos                
-                self.mjData.ctrl = Kp * (error_joints_pos) - Kd * joints_vel
-                mujoco.mj_step(self.mjModel, self.mjData)
+            error_joints_pos = desired_joint_pos - joints_pos        
+            self.mjData.ctrl = Kp * (error_joints_pos) - Kd * joints_vel
+            mujoco.mj_step(self.mjModel, self.mjData)
 
 
         # Publish the desired joint positions to the trajectory generator --------------------------------
