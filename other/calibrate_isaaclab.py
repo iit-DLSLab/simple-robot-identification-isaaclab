@@ -137,8 +137,8 @@ def main():
         timestep = 0
 
         # Sample different Kp and Kd values for each environment
-        nominal_kp = config.Kp_walking
-        nominal_kd = config.Kd_walking
+        nominal_kp = config.Kp
+        nominal_kd = config.Kd
 
         if(config.optimize_gain):
             # Sample in steps withing the bounds

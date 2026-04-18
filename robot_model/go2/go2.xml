@@ -5,7 +5,7 @@
 
     <default>
         <default class="go2">
-            <geom friction="0.6" margin="0.001" condim="1"/>
+            <geom friction="0.6" margin="0.001"/>
             <joint axis="0 1 0" damping="0.6" armature="0.01" frictionloss="0.2"/>
             <motor ctrlrange="-23.7 23.7"/>
             <default class="abduction">
@@ -76,7 +76,7 @@
                 <joint name="FL_hip_joint" class="abduction"/>
                 <geom mesh="hip_0" material="metal" class="visual"/>
                 <geom mesh="hip_1" material="gray" class="visual"/>
-                <geom size="0.046 0.02" pos="0 0.05 0" quat="1 1 0 0" type="capsule" class="collision"/>
+                <!-- <geom size="0.046 0.02" pos="0 0.05 0" quat="1 1 0 0" type="capsule" class="collision"/> -->
                 <body name="FL_thigh" pos="0 0.0955 0">
                     <inertial pos="-0.00374 -0.0223 -0.0327" quat="0.829533 0.0847635 -0.0200632 0.551623" mass="1.152"
                               diaginertia="0.00594973 0.00584149 0.000878787"/>
@@ -112,7 +112,7 @@
                 <joint name="FR_hip_joint" class="abduction"/>
                 <geom mesh="hip_0" material="metal" class="visual" quat="4.63268e-05 1 0 0"/>
                 <geom mesh="hip_1" material="gray" class="visual" quat="4.63268e-05 1 0 0"/>
-                <geom size="0.046 0.02" pos="0 -0.05 0" quat="0.707107 0.707107 0 0" type="capsule" class="collision"/>
+                <!-- <geom size="0.046 0.02" pos="0 -0.05 0" quat="0.707107 0.707107 0 0" type="capsule" class="collision"/> -->
                 <body name="FR_thigh" pos="0 -0.0955 0">
                     <inertial pos="-0.00374 0.0223 -0.0327" quat="0.551623 -0.0200632 0.0847635 0.829533" mass="1.152"
                               diaginertia="0.00594973 0.00584149 0.000878787"/>
@@ -147,7 +147,7 @@
                 <joint name="RL_hip_joint" class="abduction"/>
                 <geom mesh="hip_0" material="metal" class="visual" quat="4.63268e-05 0 1 0"/>
                 <geom mesh="hip_1" material="gray" class="visual" quat="4.63268e-05 0 1 0"/>
-                <geom size="0.046 0.02" pos="0 0.05 0" quat="0.707107 0.707107 0 0" type="capsule" class="collision"/>
+                <!-- <geom size="0.046 0.02" pos="0 0.05 0" quat="0.707107 0.707107 0 0" type="capsule" class="collision"/> -->
                 <body name="RL_thigh" pos="0 0.0955 0">
                     <inertial pos="-0.00374 -0.0223 -0.0327" quat="0.829533 0.0847635 -0.0200632 0.551623" mass="1.152"
                               diaginertia="0.00594973 0.00584149 0.000878787"/>
@@ -183,7 +183,7 @@
                 <joint name="RR_hip_joint" class="abduction"/>
                 <geom mesh="hip_0" material="metal" class="visual" quat="2.14617e-09 4.63268e-05 4.63268e-05 -1"/>
                 <geom mesh="hip_1" material="gray" class="visual" quat="2.14617e-09 4.63268e-05 4.63268e-05 -1"/>
-                <geom size="0.046 0.02" pos="0 -0.05 0" quat="0.707107 0.707107 0 0" type="capsule" class="collision"/>
+                <!-- <geom size="0.046 0.02" pos="0 -0.05 0" quat="0.707107 0.707107 0 0" type="capsule" class="collision"/> -->
                 <body name="RR_thigh" pos="0 -0.0955 0">
                     <inertial pos="-0.00374 0.0223 -0.0327" quat="0.551623 -0.0200632 0.0847635 0.829533" mass="1.152"
                               diaginertia="0.00594973 0.00584149 0.000878787"/>
@@ -235,6 +235,18 @@
         <gyro name="imu_gyro" site="imu"/>
         <framepos name="imu_pos" objtype="site" objname="imu"/>
         <framequat name="imu_quat" objtype="site" objname="imu"/>
+        <jointpos name="joint_FL_hip_joint_pos" joint="FL_hip_joint"/>
+        <jointpos name="joint_FL_thigh_joint_pos" joint="FL_thigh_joint"/>
+        <jointpos name="joint_FL_calf_joint_pos" joint="FL_calf_joint"/>
+        <jointpos name="joint_FR_hip_joint_pos" joint="FR_hip_joint"/>
+        <jointpos name="joint_FR_thigh_joint_pos" joint="FR_thigh_joint"/>
+        <jointpos name="joint_FR_calf_joint_pos" joint="FR_calf_joint"/>
+        <jointpos name="joint_RL_hip_joint_pos" joint="RL_hip_joint"/>
+        <jointpos name="joint_RL_thigh_joint_pos" joint="RL_thigh_joint"/>
+        <jointpos name="joint_RL_calf_joint_pos" joint="RL_calf_joint"/>
+        <jointpos name="joint_RR_hip_joint_pos" joint="RR_hip_joint"/>
+        <jointpos name="joint_RR_thigh_joint_pos" joint="RR_thigh_joint"/>
+        <jointpos name="joint_RR_calf_joint_pos" joint="RR_calf_joint"/>
     </sensor>
 
     <keyframe>

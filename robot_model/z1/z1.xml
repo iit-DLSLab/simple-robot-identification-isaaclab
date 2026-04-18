@@ -1,12 +1,12 @@
 <mujoco model="z1">
-  <compiler angle="radian" meshdir="assets"/>
+  <compiler angle="radian"/>
 
-  <option integrator="implicitfast"/>
+  <option integrator="implicitfast" timestep="0.005"/>
 
   <default>
     <default class="z1">
       <joint damping="1" frictionloss="1"/>
-      <general biastype="affine" gainprm="1000" biasprm="0 -1000 -100" forcerange="-30 30"/>
+      <!-- <general biastype="affine" gainprm="1000" biasprm="0 -1000 -100" forcerange="-30 30"/> -->
       <default class="visual">
         <geom type="mesh" group="2" contype="0" conaffinity="0"/>
       </default>
@@ -35,26 +35,26 @@
   </default>
 
   <asset>
-    <mesh file="z1_Link00.stl"/>
-    <mesh file="z1_Link01.stl"/>
-    <mesh file="z1_Link02.stl"/>
-    <mesh file="z1_Link03.stl"/>
-    <mesh file="z1_Link04.stl"/>
-    <mesh file="z1_Link05.stl"/>
-    <mesh file="z1_Link06.stl"/>
-    <mesh file="z1_GripperStator.stl"/>
-    <mesh file="z1_GripperStator_col_1.stl"/>
-    <mesh file="z1_GripperStator_col_2.stl"/>
-    <mesh file="z1_GripperStator_col_3.stl"/>
-    <mesh file="z1_GripperStator_col_4.stl"/>
-    <mesh file="z1_GripperStator_col_5.stl"/>
-    <mesh file="z1_GripperStator_col_6.stl"/>
-    <mesh file="z1_GripperMover.stl"/>
-    <mesh file="z1_GripperMover_col_1.stl"/>
-    <mesh file="z1_GripperMover_col_2.stl"/>
-    <mesh file="z1_GripperMover_col_3.stl"/>
-    <mesh file="z1_GripperMover_col_4.stl"/>
-    <mesh file="z1_GripperMover_col_5.stl"/>
+    <mesh file="assets/z1_Link00.stl"/>
+    <mesh file="assets/z1_Link01.stl"/>
+    <mesh file="assets/z1_Link02.stl"/>
+    <mesh file="assets/z1_Link03.stl"/>
+    <mesh file="assets/z1_Link04.stl"/>
+    <mesh file="assets/z1_Link05.stl"/>
+    <mesh file="assets/z1_Link06.stl"/>
+    <mesh file="assets/z1_GripperStator.stl"/>
+    <mesh file="assets/z1_GripperStator_col_1.stl"/>
+    <mesh file="assets/z1_GripperStator_col_2.stl"/>
+    <mesh file="assets/z1_GripperStator_col_3.stl"/>
+    <mesh file="assets/z1_GripperStator_col_4.stl"/>
+    <mesh file="assets/z1_GripperStator_col_5.stl"/>
+    <mesh file="assets/z1_GripperStator_col_6.stl"/>
+    <mesh file="assets/z1_GripperMover.stl"/>
+    <mesh file="assets/z1_GripperMover_col_1.stl"/>
+    <mesh file="assets/z1_GripperMover_col_2.stl"/>
+    <mesh file="assets/z1_GripperMover_col_3.stl"/>
+    <mesh file="assets/z1_GripperMover_col_4.stl"/>
+    <mesh file="assets/z1_GripperMover_col_5.stl"/>
   </asset>
 
   <worldbody>
@@ -114,7 +114,7 @@
                   <body name="gripperMover" pos="0.1 0 0">
                     <inertial pos="0.0132063 0.00476708 0.00380534" quat="0.0631093 0.669067 -0.0615783 0.737953"
                       mass="0.276213" diaginertia="0.000359044 0.000270888 0.000172378"/>
-                    <joint name="jointGripper" axis="0 1 0" range="-1.51844 0"/>
+                    <joint name="jointGripper" axis="0 1 0" range="-1.51844 0.05"/>
                     <geom type="mesh" mesh="z1_GripperMover" class="visual"/>
                     <geom class="z1_gripper_mover_collision" mesh="z1_GripperMover_col_1"/>
                     <geom class="z1_gripper_mover_collision" mesh="z1_GripperMover_col_2"/>
@@ -134,16 +134,26 @@
   </worldbody>
 
   <actuator>
-        <motor name="motor1"   joint="joint1" ctrlrange="-30.0 30.0"/>
-        <motor name="motor2"   joint="joint2" ctrlrange="-60.0 60.0"/>
-        <motor name="motor3"   joint="joint3" ctrlrange="-30.0 30.0"/>
-        <motor name="motor4"   joint="joint4" ctrlrange="-30.0 30.0"/>
-        <motor name="motor5"   joint="joint5" ctrlrange="-30.0 30.0"/>
-        <motor name="motor6"   joint="joint6" ctrlrange="-30.0 30.0"/>
-        <motor name="motorGripper" joint="jointGripper" ctrlrange="-1.51844 1.51844"/>
+      <motor name="motor1"   joint="joint1" ctrlrange="-30.0 30.0"/>
+      <motor name="motor2"   joint="joint2" ctrlrange="-60.0 60.0"/>
+      <motor name="motor3"   joint="joint3" ctrlrange="-30.0 30.0"/>
+      <motor name="motor4"   joint="joint4" ctrlrange="-30.0 30.0"/>
+      <motor name="motor5"   joint="joint5" ctrlrange="-30.0 30.0"/>
+      <motor name="motor6"   joint="joint6" ctrlrange="-30.0 30.0"/>
+      <motor name="motorGripper" joint="jointGripper" ctrlrange="-1.51844 1.51844"/>
   </actuator>
 
+  <sensor>
+    <jointpos name="joint1_pos" joint="joint1"/>
+    <jointpos name="joint2_pos" joint="joint2"/>
+    <jointpos name="joint3_pos" joint="joint3"/>
+    <jointpos name="joint4_pos" joint="joint4"/>
+    <jointpos name="joint5_pos" joint="joint5"/>
+    <jointpos name="joint6_pos" joint="joint6"/>
+    <jointpos name="jointGripper_pos" joint="jointGripper"/>
+  </sensor>
+
   <keyframe>
-    <key name="home" qpos="0 0. -0. -0. 0 0 0" ctrl="0 0. -0. -0. 0 0 0"/>
+    <key name="home" qpos="0 0. -0. -0. 0 0 0.06" ctrl="0 0. -0. -0. 0 0 0"/>
   </keyframe>
 </mujoco>

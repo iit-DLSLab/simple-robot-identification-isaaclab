@@ -2,8 +2,6 @@ import readline
 import readchar
 import time
 
-from gym_quadruped.utils.quadruped_utils import LegsAttr
-
 import numpy as np
 import copy
 
@@ -41,49 +39,8 @@ class Console():
         while True:
             input_string = input(">>> ")
             try:
-                if(input_string == "goDown"):
-                    print("Going Down")
-                    if(self.isDown):
-                        print("The robot is already down")
-                        continue
-
-                    self.isDown = True
-
-                    start_time = time.time()
-                    time_motion = 5.
-
-                    temp = copy.deepcopy(self.controller_node.joint_positions)
-                    initial_joint_positions = LegsAttr(*[np.zeros((1, int(self.controller_node.env.mjModel.nu/4))) for _ in range(4)])
-                    initial_joint_positions.FL = temp[0:3]
-                    initial_joint_positions.FR = temp[3:6]
-                    initial_joint_positions.RL = temp[6:9]
-                    initial_joint_positions.RR = temp[9:12]
-
-                    keyframe_id = mujoco.mj_name2id(self.controller_node.env.mjModel, mujoco.mjtObj.mjOBJ_KEY, "down")
-                    goDown_qpos = self.controller_node.env.mjModel.key_qpos[keyframe_id]
-                    reference_joint_positions = LegsAttr(*[np.zeros((1, int(self.controller_node.env.mjModel.nu/4))) for _ in range(4)])
-                    reference_joint_positions.FL = goDown_qpos[7:10]
-                    reference_joint_positions.FR = goDown_qpos[10:13]
-                    reference_joint_positions.RL = goDown_qpos[13:16]
-                    reference_joint_positions.RR = goDown_qpos[16:19]
-
-                    while(time.time() - start_time < time_motion):
-                        time_diff = time.time() - start_time
-                        alpha = time_diff / time_motion
-                        interpolated_positions = [
-                            (1 - alpha) * initial + alpha * reference
-                            for initial, reference in zip(initial_joint_positions, reference_joint_positions)
-                        ]
-            
-                        self.controller_node.stand_up_and_down_actions.FL = interpolated_positions[0]
-                        self.controller_node.stand_up_and_down_actions.FR = interpolated_positions[1]
-                        self.controller_node.stand_up_and_down_actions.RL = interpolated_positions[2]
-                        self.controller_node.stand_up_and_down_actions.RR = interpolated_positions[3]
-
-                        time.sleep(0.01)
-
                     
-                elif(input_string == "startCollection"):
+                if(input_string == "startCollection"):
 
                     mode = input("Select the collection mode (setpoint/falling/trajectory): ")
                     if(mode == "setpoint"):

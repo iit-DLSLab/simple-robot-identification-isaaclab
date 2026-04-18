@@ -2,8 +2,8 @@ robot = 'go2'  # 'aliengo', 'go1', 'go2', 'b2', 'hyqreal1', 'hyqreal2', 'mini_ch
 
 # ----------------------------------------------------------------------------------------------------------------
 if(robot == "aliengo"):
-    Kp_walking = 25.
-    Kd_walking = 2.
+    Kp = 25.
+    Kd = 2.
     search_Kp_bounds = [-10., 10.]
     search_Kd_bounds = [-1., 2.]
 
@@ -14,8 +14,8 @@ if(robot == "aliengo"):
 
 
 elif(robot == "go2"):
-    Kp_walking = 20.
-    Kd_walking = 1.5
+    Kp = 20.
+    Kd = 1.5
     search_Kp_bounds = [-10., 10.]
     search_Kd_bounds = [-1., 2.]
 
@@ -28,8 +28,8 @@ elif(robot == "go2"):
     search_armature_bounds = [-0.01, 0.04]
 
 elif(robot == "b2"):
-    Kp_walking = 20.
-    Kd_walking = 1.5
+    Kp = 20.
+    Kd = 1.5
     search_Kp_bounds = [-10., 10.]
     search_Kd_bounds = [-1., 2.]
 
@@ -42,8 +42,8 @@ elif(robot == "b2"):
     search_armature_bounds = [-0.01, 0.04]
 
 elif(robot == "hyqreal2"):
-    Kp_walking = 175.
-    Kd_walking = 20.
+    Kp = 175.
+    Kd = 20.
     search_Kp_bounds = [-50., 50.]
     search_Kd_bounds = [-5., 5.]
 

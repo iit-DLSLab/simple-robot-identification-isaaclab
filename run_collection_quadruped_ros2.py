@@ -95,8 +95,8 @@ class Data_Collection_Node(Node):
         self.stand_up_and_down_actions[11] += 0.3
         
         
-        self.Kp_stand_up_and_down = config.Kp_walking
-        self.Kd_stand_up_and_down = config.Kd_walking
+        self.Kp_stand_up_and_down = config.Kp
+        self.Kd_stand_up_and_down = config.Kd
 
         self.calibration_reference_joint_positions = None
         
