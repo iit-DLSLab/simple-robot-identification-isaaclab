@@ -5,6 +5,7 @@
 
     <default>
         <default class="go2">
+            <joint axis="0 1 0"/>
             <geom friction="0.6" margin="0.001"/>
             <motor ctrlrange="-23.7 23.7"/>
             <default class="abduction">

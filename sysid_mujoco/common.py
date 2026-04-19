@@ -270,6 +270,12 @@ def _rewrite_actuators_as_general(
         ET.SubElement(actuator_element, "general", actuator_spec)
 
 
+def _disable_all_collisions(root):
+    for geom in root.iter("geom"):
+        geom.set("contype", "0")
+        geom.set("conaffinity", "0")
+
+
 def build_fixed_base_model_xml(
     robot: str,
     actuator_mode: str = "general",
@@ -296,6 +302,9 @@ def build_fixed_base_model_xml(
             "Expected `motor` or `general`."
         )
     _absolutize_file_attributes(root, source_xml.parent)
+
+    _disable_all_collisions(root)
+
     tree.write(output_xml, encoding="utf-8", xml_declaration=True)
     return output_xml
 
