@@ -46,4 +46,4 @@ PRs are very welcome (search for **TODO** in the issue, or add what you like)!
 
 ## Maintainer
 
-This repository is maintained by [Giulio Turrisi](https://github.com/giulioturrisi).
+This repository is maintained by [Giulio Turrisi](https://github.com/giulioturrisi) and [Lorenzo Amatucci](https://github.com/lorenzo96-cmd).
