@@ -166,7 +166,6 @@ def main() -> None:
         dataset_paths=args.dataset,
         chunk_size=args.chunk_size,
     )
-    input_descriptions = [str(path.resolve()) for path in args.dataset]
 
     joint_names = [fixed_base_model.joint(i).name for i in range(fixed_base_model.njnt)]
     sequence_names = [f"sequence_{index:03d}" for index, _ in enumerate(measurement_ts)]
@@ -229,57 +228,6 @@ def main() -> None:
         return report_path
 
     display_report(report, output_dir / "report.html")
-    # write_joint_parameter_model(
-    #     source_xml=get_robot_model_xml_path(args.robot),
-    #     output_xml=floating_base_model_xml,
-    #     identified_parameters=identified_parameters,
-    #     fixed_base=False,
-    # )
-    # write_joint_parameter_model(
-    #     source_xml=fixed_base_xml,
-    #     output_xml=fixed_base_model_out_xml,
-    #     identified_parameters=identified_parameters,
-    #     fixed_base=True,
-    # )
-    # write_simple_scene(floating_base_scene_xml, floating_base_model_xml)
-    # write_simple_scene(fixed_base_scene_xml, fixed_base_model_out_xml)
-
-    # try:
-    #     opt_params.save_to_disk(output_dir / "identified_parameters.yaml")
-    # except Exception as exc:
-    #     print(f"Warning: could not save ParameterDict YAML: {exc}")
-
-    # summary_payload = {
-    #     "robot": args.robot,
-    #     "inputs": input_descriptions,
-    #     "optimizer": args.optimizer,
-    #     "max_iters": int(args.max_iters),
-    #     "fixed_base_model_xml": str(fixed_base_xml.resolve()),
-    #     "initial_cost": initial_cost,
-    #     "final_cost": final_cost,
-    #     "cost_reduction": initial_cost - final_cost,
-    #     "bounds": bounds,
-    #     "joint_names": joint_names,
-    #     "num_sequences": len(initial_states),
-    #     "parameters": parameter_summary,
-    #     "artifacts": {
-    #         "floating_base_model_xml": str(floating_base_model_xml.resolve()),
-    #         "floating_base_scene_xml": str(floating_base_scene_xml.resolve()),
-    #         "fixed_base_model_xml": str(fixed_base_model_out_xml.resolve()),
-    #         "fixed_base_scene_xml": str(fixed_base_scene_xml.resolve()),
-    #     },
-    # }
-    # if hasattr(opt_result, "extras"):
-    #     summary_payload["optimizer_extras"] = {
-    #         key: value if isinstance(value, (int, float, str, bool)) else len(value)
-    #         for key, value in opt_result.extras.items()
-    #     }
-    # write_json(output_dir / "fit_summary.json", summary_payload)
-
-    # print(f"Initial cost: {initial_cost:.6f}")
-    # print(f"Final cost:   {final_cost:.6f}")
-    # print_parameter_summary(parameter_summary)
-    # print(f"Results written to {output_dir}")
 
 
 if __name__ == "__main__":
