@@ -247,9 +247,10 @@ def _rewrite_actuators_as_general(
     joint_ranges: dict[str, str] = {}
     for element in root.iter("joint"):
         joint_name = element.get("name")
-        # joint_range = element.get("range")
-        # if joint_name is not None and joint_range is not None:
-        #     joint_ranges[joint_name] = joint_range
+        joint_range = element.get("range")
+        print(f"Found joint {joint_name} with range {joint_range}")
+        if joint_name is not None and joint_range is not None:
+            joint_ranges[joint_name] = joint_range
 
     if actuator_element is None:
         actuator_element = ET.SubElement(root, "actuator")
@@ -259,9 +260,10 @@ def _rewrite_actuators_as_general(
 
     for actuator_spec in source_actuators:
         joint_name = actuator_spec["joint"]
-        # joint_range = joint_ranges.get(joint_name)
-        # if joint_range is not None:
-        #     actuator_spec["ctrlrange"] = joint_range
+        joint_range = joint_ranges.get(joint_name)
+        print(joint_range)
+        if joint_range is not None:
+            actuator_spec["ctrlrange"] = joint_range
         if actuator_gains is not None and joint_name in actuator_gains:
             kp, kd = actuator_gains[joint_name]
             actuator_spec["biastype"] = "affine"
@@ -357,10 +359,10 @@ def load_processed_dataset(
     times = np.asarray(dataset["time"], dtype=np.float64)
     measured_qpos = np.asarray(dataset["dof_pos"], dtype=np.float64)
     measured_qvel = np.asarray(dataset["dof_vel"], dtype=np.float64)
-    measured_qvel = np.zeros_like(measured_qpos) # Placeholder since we don't have velocity measurements in the dataset
+    # measured_qvel = np.zeros_like(measured_qpos) # Use placeholder if you don't have velocity measurements in the dataset
     desired_qpos = np.asarray(dataset["des_dof_pos"], dtype=np.float64)
     desired_qvel = np.asarray(dataset["des_dof_vel"], dtype=np.float64)
-    desired_qvel = np.zeros_like(desired_qpos) # Placeholder since we don't have velocity measurements in the dataset
+    # desired_qvel = np.zeros_like(desired_qpos) # Use placeholder if you don't have velocity measurements in the dataset
 
     joint_names, actuator_names = get_actuated_joint_and_actuator_names(mujoco, model)
     kp, kd = load_dataset_actuator_gains(dataset_path, num_joints=len(joint_names))
@@ -468,67 +470,8 @@ def processed_to_sysid_trajectory(sysid, model, trajectory: ProcessedTrajectory)
     )
     return measurement_ts, control_ts, initial_state
 
-
-def build_sensor_weights(
-    joint_names: list[str],
-    position_weight: float,
-    velocity_weight: float,
-) -> dict[str, float]:
-    weights: dict[str, float] = {}
-    for joint_name in joint_names:
-        weights[f"{joint_name}_qpos"] = position_weight
-        weights[f"{joint_name}_qvel"] = velocity_weight
-    return weights
-
-
 def _as_scalar(value: Any) -> float:
     return float(np.asarray(value, dtype=np.float64).reshape(-1)[0])
-
-
-def make_weighted_state_residual(sysid, observation_weights: dict[str, float]):
-    def modify_residual(
-        params,
-        sensordata_predicted,
-        sensordata_measured,
-        model,
-        return_pred_all,
-        state=None,
-        sensor_weights=None,
-    ):
-        del params
-        del return_pred_all
-        del sensor_weights
-        if state is None:
-            raise ValueError("Expected `state` to be provided by mujoco.sysid.")
-
-        qpos_map, qvel_map, act_map, _ = sysid.TimeSeries.compute_all_state_mappings(
-            model
-        )
-        state_ts = sysid.TimeSeries(
-            times=state[:, 0],
-            data=state[:, 1:],
-            signal_mapping=qpos_map | qvel_map | act_map,
-        )
-        measured_ts, predicted_ts = sysid.construct_ts_from_defaults(
-            state_ts=state_ts,
-            pred_sensordata=sensordata_predicted,
-            measured_sensordata=sensordata_measured,
-        )
-        measured_ts = sysid.apply_delayed_ts_window(
-            measured_ts, predicted_ts, 0.0, 0.0
-        )
-        predicted_ts = predicted_ts.resample(measured_ts.times)
-
-        residual = measured_ts.data - predicted_ts.data
-        if measured_ts.signal_mapping is not None:
-            column_weights = np.ones(residual.shape[1], dtype=np.float64)
-            for signal_name, (_, indices) in measured_ts.signal_mapping.items():
-                column_weights[indices] = observation_weights.get(signal_name, 1.0)
-            residual = residual * column_weights
-
-        return residual, predicted_ts, measured_ts
-
-    return modify_residual
 
 
 def make_armature_modifier(joint_name):
@@ -577,32 +520,3 @@ def build_parameter_dict(sysid, model, joint_names: list[str], bounds: dict[str,
             parameter_dict.add(parameter)
     print("Initial parameter vector:", parameter_dict.as_vector())
     return parameter_dict
-
-def write_simple_scene(scene_path: Path, model_xml_path: Path) -> None:
-    scene_path.parent.mkdir(parents=True, exist_ok=True)
-    scene_contents = f"""<mujoco model="{model_xml_path.stem} scene">
-  <include file="{model_xml_path.resolve()}"/>
-  <worldbody>
-    <geom name="floor" size="0 0 0.05" type="plane"/>
-  </worldbody>
-</mujoco>
-"""
-    scene_path.write_text(scene_contents, encoding="utf-8")
-
-
-def write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
-
-
-def print_parameter_summary(summary: dict[str, dict[str, dict[str, float]]]) -> None:
-    for joint_name, joint_summary in summary.items():
-        damping = joint_summary["damping"]
-        armature = joint_summary["armature"]
-        friction = joint_summary["frictionloss"]
-        print(
-            f"{joint_name}: "
-            f"damping {damping['initial']:.6f} -> {damping['identified']:.6f}, "
-            f"armature {armature['initial']:.6f} -> {armature['identified']:.6f}, "
-            f"frictionloss {friction['initial']:.6f} -> {friction['identified']:.6f}"
-        )
