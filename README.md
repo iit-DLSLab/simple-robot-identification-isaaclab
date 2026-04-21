@@ -1,6 +1,8 @@
   <div style="display: flex; justify-content: space-around;">
+    <img src="https://img.shields.io/badge/IsaacLab%20-v2.3.2-blue" alt="IsaacLab v2.3.0" style="margin-bottom: 1px;">
+    <img src="https://img.shields.io/badge/IsaacLab%20-v2.3.2-blue" alt="Mujoco v3.7.0" style="margin-bottom: 1px;">
     <img src="./gifs/z1_real.gif" alt="Z1Real" width="32%">
-    <img src="./gifs/z1_sim.gif" alt="Z1Sim" width="32%">
+    <img src="./gifs/z1_sim.gif" alt="Z1Sim" width="29.3%">
     <img src="./gifs/sim-to-real.gif" alt="Sim-to-Real" width="32%">
   </div>
 
