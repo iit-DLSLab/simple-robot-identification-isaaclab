@@ -139,7 +139,7 @@
       <motor name="motor4"   joint="joint4" ctrlrange="-30.0 30.0"/>
       <motor name="motor5"   joint="joint5" ctrlrange="-30.0 30.0"/>
       <motor name="motor6"   joint="joint6" ctrlrange="-30.0 30.0"/>
-      <motor name="motorGripper" joint="jointGripper" ctrlrange="-5 5"/>
+      <motor name="motorGripper" joint="jointGripper" ctrlrange="-10 10"/>
   </actuator>
 
   <sensor>
