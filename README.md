@@ -1,6 +1,6 @@
   <div style="display: flex; justify-content: space-around;">
     <img src="./gifs/z1_real.gif" alt="Z1Real" width="32%">
-    <img src="./gifs/sim-to-sim.gif" alt="Sim-to-Sim" width="32%">
+    <img src="./gifs/z1_sim.gif" alt="Z1Sim" width="32%">
     <img src="./gifs/sim-to-real.gif" alt="Sim-to-Real" width="32%">
   </div>
 
