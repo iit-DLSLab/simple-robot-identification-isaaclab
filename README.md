@@ -11,7 +11,7 @@
 
 ## Overwiew
 
-A joint calibration routine for IsaacLab and Mujoco, to estimate motor parameters. It provides scripts for data collection on the real robot (the robot should be in the air with the base fixed). 
+A joint calibration routine for IsaacLab and Mujoco, to estimate motor parameters. It provides scripts for data collection on the real robot (the robot should be in the air with the base fixed if a quadruped, or on a table if a manipulator). 
 This repo interfaces directly with [Pace](https://github.com/leggedrobotics/pace-sim2real) and the new [sys-id functionality](https://github.com/google-deepmind/mujoco/blob/main/python/mujoco/sysid/README.md) of Mujoco.
 
 
