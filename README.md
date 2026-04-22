@@ -19,7 +19,12 @@ The models (usd and xml) identified so far can be found in the folder **robot_mo
 
 2. create an environment using the file in the folder [installation](https://github.com/iit-DLSLab/sim2real-robot-identification/tree/main/installation)
 
-3. install IsaacLab if you need it
+```bash
+conda env create -f mamba_environment_ros2.yaml
+conda activate sim2real_robot_identification_ros2_env
+```
+
+4. install IsaacLab if you need it
 
 ## Run a collection
 This repo works best with [unitree-ros2-dls](https://github.com/iit-DLSLab/unitree-ros2-dls) for communicating with unitree go2, b2, a2, and z1 robots. Soon, will support agilex piper arms using [piper-ros2-dls2](https://github.com/iit-DLSLab/piper-ros2-dls2).
