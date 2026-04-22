@@ -10,13 +10,13 @@
         </default>
 
         <default class="hip">
-            <motor ctrlrange="-44.4 44.4"/>
+            <motor ctrlrange="-35.278 35.278"/>
         </default>
         <default class="thigh">
             <motor ctrlrange="-35.278 35.278"/>
         </default>
         <default class="calf">
-            <motor ctrlrange="-35.278 35.278"/>
+            <motor ctrlrange="-44.4 44.4"/>
         </default>
 
     </default>
