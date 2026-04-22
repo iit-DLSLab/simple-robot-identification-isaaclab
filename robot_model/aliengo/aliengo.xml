@@ -101,7 +101,7 @@
                 <body name="FR_thigh" pos="0 -0.083 0">
                     <inertial pos="-0.005607 0.003877 -0.048199" quat="0.694544 -0.0335669 -0.031246 0.717987"
                               mass="0.639" diaginertia="0.0058474 0.00571186 0.000324584"/>
-                    <joint name="FR_thigh_joint" pos="0 0 0" axis="0 1 0" armature="0.0172" frictionloss="0.3451" damping="0.1396"/>
+                    <joint name="FR_thigh_joint" pos="0 0 0" axis="0 1 0" armature="0.0126" frictionloss="0.2558" damping="0.2542"/>
 
                     <!-- FR_thigh visual mesh and collision -->
                     <geom type="mesh" mesh="thigh_mirror" class="visual" rgba="0.2 0.2 0.2 1"/>
@@ -111,7 +111,7 @@
                     <body name="FR_calf" pos="0 0 -0.25">
                         <inertial pos="0.00215606 4.88427e-05 -0.166671" quat="0.707462 0.00517582 0.00535172 0.706712"
                                   mass="0.267" diaginertia="0.00690975 0.00689712 5.4885e-05"/>
-                        <joint name="FR_calf_joint" pos="0 0 0" axis="0 1 0" limited="true" range="-2.77507 -0.645772" armature="0.0126" frictionloss="0.2559" damping="0.2541"/>
+                        <joint name="FR_calf_joint" pos="0 0 0" axis="0 1 0" limited="true" range="-2.77507 -0.645772" armature="0.0170" frictionloss="0.1965" damping="0.3150"/>
 
                         <!-- FR_calf visual mesh and collision -->
                         <geom type="mesh" mesh="calf" class="visual" rgba="0 0 0 1"/>
@@ -220,6 +220,19 @@
         <gyro name="imu_gyro" site="imu"/>
         <framepos name="imu_pos" objtype="site" objname="imu"/>
         <framequat name="imu_quat" objtype="site" objname="imu"/>
+
+        <jointpos name="joint_FL_hip_joint_pos" joint="FL_hip_joint"/>
+        <jointpos name="joint_FL_thigh_joint_pos" joint="FL_thigh_joint"/>
+        <jointpos name="joint_FL_calf_joint_pos" joint="FL_calf_joint"/>
+        <jointpos name="joint_FR_hip_joint_pos" joint="FR_hip_joint"/>
+        <jointpos name="joint_FR_thigh_joint_pos" joint="FR_thigh_joint"/>
+        <jointpos name="joint_FR_calf_joint_pos" joint="FR_calf_joint"/>
+        <jointpos name="joint_RL_hip_joint_pos" joint="RL_hip_joint"/>
+        <jointpos name="joint_RL_thigh_joint_pos" joint="RL_thigh_joint"/>
+        <jointpos name="joint_RL_calf_joint_pos" joint="RL_calf_joint"/>
+        <jointpos name="joint_RR_hip_joint_pos" joint="RR_hip_joint"/>
+        <jointpos name="joint_RR_thigh_joint_pos" joint="RR_thigh_joint"/>
+        <jointpos name="joint_RR_calf_joint_pos" joint="RR_calf_joint"/>
     </sensor>
 
 

@@ -235,6 +235,7 @@
         <gyro name="imu_gyro" site="imu"/>
         <framepos name="imu_pos" objtype="site" objname="imu"/>
         <framequat name="imu_quat" objtype="site" objname="imu"/>
+
         <jointpos name="joint_FL_hip_joint_pos" joint="FL_hip_joint"/>
         <jointpos name="joint_FL_thigh_joint_pos" joint="FL_thigh_joint"/>
         <jointpos name="joint_FL_calf_joint_pos" joint="FL_calf_joint"/>
