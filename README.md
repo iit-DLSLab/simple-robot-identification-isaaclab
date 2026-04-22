@@ -2,9 +2,7 @@
     <img src="https://img.shields.io/badge/IsaacLab%20-v2.3.2-green" alt="IsaacLab v2.3.0" style="margin-bottom: 1px;">
     <img src="https://img.shields.io/badge/Mujoco%20-v3.7.0-blue" alt="Mujoco v3.7.0" style="margin-bottom: 1px;">
     <div style="display: flex; justify-content: space-around;">
-      <img src="./gifs/z1_real.gif" alt="Z1Real" width="32%">
-      <img src="./gifs/z1_sim.gif" alt="Z1Sim" width="29.3%">
-      <img src="./gifs/sim-to-real.gif" alt="Sim-to-Real" width="32%">
+      <img src="./gifs/z1_real.gif" alt="Z1Real" width="50%">
     </div>
   </div>
 
@@ -14,10 +12,14 @@
 A joint calibration routine for IsaacLab and Mujoco, to estimate motor parameters. It provides scripts for data collection on the real robot (the robot should be in the air with the base fixed if a quadruped, or on a table if a manipulator). 
 This repo interfaces directly with [Pace](https://github.com/leggedrobotics/pace-sim2real) and the new [sys-id functionality](https://github.com/google-deepmind/mujoco/blob/main/python/mujoco/sysid/README.md) of Mujoco.
 
-
-
 The models (usd and xml) identified so far can be found in the folder **robot_model**. 
 
+## Installation
+1. install [miniforge](https://github.com/conda-forge/miniforge/releases) (x86_64 or arm64 depending on your platform)
+
+2. create an environment using the file in the folder [installation](https://github.com/iit-DLSLab/sim2real-robot-identification/tree/main/installation)
+
+3. install IsaacLab if you need it
 
 ## Run a collection
 This repo works best with [unitree-ros2-dls](https://github.com/iit-DLSLab/unitree-ros2-dls) for communicating with unitree go2, b2, a2, and z1 robots. Soon, will support agilex piper arms using [piper-ros2-dls2](https://github.com/iit-DLSLab/piper-ros2-dls2).
