@@ -12,15 +12,15 @@
   </default>
 
   <asset>
-    <mesh name="base_link" file="base_link.STL"/>
-    <mesh name="link1" file="link1.STL"/>
-    <mesh name="link2" file="link2.STL"/>
-    <mesh name="link3" file="link3.STL"/>
-    <mesh name="link4" file="link4.STL"/>
-    <mesh name="link5" file="link5.STL"/>
-    <mesh name="gripper_base_100_v3" file="gripper_base_100_v3.STL"/>
-    <mesh name="link7" file="link7.STL"/>
-    <mesh name="link8" file="link8.STL"/>
+    <mesh name="base_link" file="assets/base_link.STL"/>
+    <mesh name="link1" file="assets/link1.STL"/>
+    <mesh name="link2" file="assets/link2.STL"/>
+    <mesh name="link3" file="assets/link3.STL"/>
+    <mesh name="link4" file="assets/link4.STL"/>
+    <mesh name="link5" file="assets/link5.STL"/>
+    <mesh name="link7" file="assets/link7.STL"/>
+    <mesh name="link8" file="assets/link8.STL"/>
+    <mesh name="gripper_base_100_v3" file="assets/gripper_base_100_v3.STL"/>
     <mesh name="realsense_mid_stand_v2" content_type="model/stl" file="realsense_mid_stand_v2.STL"/>
   </asset>
 
