@@ -60,6 +60,16 @@ elif(robot =="z1"):
                    2.5, 2.5, 2.5,
                    2.5])
 
+elif(robot =="piper_l"):
+    # Order joint1-joint2-joint3-joint4-joint5-joint6-gripper
+    Kp = np.array([50., 50., 50.,
+                   50., 50., 50.,
+                   50.])
+
+    Kd = np.array([2.5, 2.5, 2.5,
+                   2.5, 2.5, 2.5,
+                   2.5])
+
 else:
     raise ValueError(f"Robot {robot} not supported")
 

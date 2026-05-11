@@ -21,7 +21,7 @@
     <mesh name="link7" file="assets/link7.STL"/>
     <mesh name="link8" file="assets/link8.STL"/>
     <mesh name="gripper_base_100_v3" file="assets/gripper_base_100_v3.STL"/>
-    <mesh name="realsense_mid_stand_v2" content_type="model/stl" file="realsense_mid_stand_v2.STL"/>
+    <mesh name="realsense_mid_stand_v2" content_type="model/stl" file="assets/realsense_mid_stand_v2.STL"/>
   </asset>
 
   <worldbody>
@@ -115,7 +115,6 @@
       <!--jointpos name="joint8_pos" joint="joint8"/-->
   </sensor>
 
-
   <actuator>
       <motor name="joint1" ctrlrange="-32 32" joint="joint1"/>
       <motor name="joint2" ctrlrange="-32 32" joint="joint2"/>
@@ -127,4 +126,11 @@
       <!--motor name="joint8" ctrlrange="-5 5" joint="joint8"/-->
       <!--position name="gripper" joint="joint7" kp="40" kv="5" forcerange="-0.5 0.5"/-->
   </actuator>
+
+  <keyframe>
+    <key name="home" qpos="0 0. -0. -0. 0 0 0.06" ctrl="0 0. -0. -0. 0 0 0"/>
+    <key name="sys_id_1" qpos="0.2 0.2 -0.5 0.2 0.2 0.2 0.0" ctrl="0 0. 0. 0. 0 0 0"/>
+    <key name="sys_id_2" qpos="0.9 0.9 -1.0 0.9 0.9 0.9 0.05" ctrl="0 0. 0. 0. 0 0 0"/>
+  </keyframe>
+
 </mujoco>

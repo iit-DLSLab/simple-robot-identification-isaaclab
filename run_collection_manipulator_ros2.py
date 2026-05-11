@@ -40,6 +40,12 @@ USE_MUJOCO_SIMULATION = True
 
 CONTROL_FREQ = config.frequency_collection # Hz 
 
+def handle_parallel_gripper(array):
+    if(config.robot == "piper_l"):
+        return array[:-1]
+    else:
+        return array
+
 
 class Data_Collection_Node(Node):
     def __init__(self):
@@ -89,8 +95,12 @@ class Data_Collection_Node(Node):
         keyframe_sys_id_2 = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "sys_id_2")
         self.home_position = self.mjModel.key_qpos[keyframe_sys_id_1]
         self.goal_position = self.mjModel.key_qpos[keyframe_sys_id_2]
-        
-        
+
+        # Handling parallel gripper - if present, otherwise 
+        # the func will return the same array
+        self.home_position = handle_parallel_gripper(self.home_position)
+        self.goal_position = handle_parallel_gripper(self.goal_position)
+
         self.Kp = config.Kp
         self.Kd = config.Kd
 
@@ -276,6 +286,11 @@ class Data_Collection_Node(Node):
 
         joints_pos = self.mjData.qpos
         joints_vel = self.mjData.qvel
+
+        # Handling parallel gripper - if present, otherwise 
+        # the func will return the same array
+        joints_pos = handle_parallel_gripper(joints_pos)
+        joints_vel = handle_parallel_gripper(joints_vel)
 
         if(not self.console.isActivated):
             desired_joint_pos = self.home_position
