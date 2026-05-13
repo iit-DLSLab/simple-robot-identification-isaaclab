@@ -22,7 +22,7 @@
     </default>
 
     <asset>
-        <mesh name="trunk" file="assets/trunk.stl"/>
+        <mesh name="base" file="assets/base.stl"/>
         <mesh name="hip" file="assets/hip.stl"/>
         <mesh name="thigh_mirror" file="assets/thigh_mirror.stl"/>
         <mesh name="calf" file="assets/calf.stl"/>
@@ -32,13 +32,13 @@
 
     <worldbody>
 
-        <body name="trunk" pos="0 0 0.4">
+        <body name="base" pos="0 0 0.4">
             <inertial pos="0.00846406 0.00404455 -0.000762916" quat="-3.12625e-05 0.708321 0.00247254 0.705886"
                       mass="13.042" diaginertia="0.174706 0.161175 0.033357"/>
             <freejoint/>
 
-            <!-- trunk visual mesh and collision -->
-            <geom type="mesh" class="visual" rgba="0.2 0.2 0.2 1" mesh="trunk"/>
+            <!-- base visual mesh and collision -->
+            <geom type="mesh" class="visual" rgba="0.2 0.2 0.2 1" mesh="base"/>
             <geom type="box" class="collision" size="0.18 0.075 0.056"/>
 
             <!-- modify this to add payload -->
@@ -82,7 +82,13 @@
                               quat="0.707107 0 0.707107 0"/>
 
                         <!-- FL_foot only collision -->
-                        <geom name="FL" class="collision" size="0.0265" pos="0 0 -0.25"/>
+                        <!--geom name="FL" class="collision" size="0.0265" pos="0 0 -0.25"/-->
+
+                        <body name="FL_foot" pos="0 0 -0.25">
+                            <!-- FL_foot only collision -->
+                            <geom name="FL" class="collision" size="0.0265"/>
+                        </body>
+
                     </body>
                 </body>
             </body>
@@ -119,7 +125,13 @@
                               quat="0.707107 0 0.707107 0"/>
 
                         <!-- FR_foot only collision -->
-                        <geom name="FR" class="collision" size="0.0265" pos="0 0 -0.25"/>
+                        <!--geom name="FR" class="collision" size="0.0265" pos="0 0 -0.25"/-->
+
+                        <body name="FR_foot" pos="0 0 -0.25">
+                            <!-- FR_foot only collision -->
+                            <geom name="FR" class="collision" size="0.0265"/>
+                        </body>
+
                     </body>
                 </body>
             </body>
@@ -156,7 +168,13 @@
                               quat="0.707107 0 0.707107 0"/>
 
                         <!-- RL_foot only collision -->
-                        <geom name="RL" class="collision" size="0.0265" pos="0 0 -0.25"/>
+                        <!--geom name="RL" class="collision" size="0.0265" pos="0 0 -0.25"/-->
+                        
+                        <body name="RL_foot" pos="0 0 -0.25">
+                            <!-- RL_foot only collision -->
+                            <geom name="RL" class="collision" size="0.0265"/>
+                        </body>
+
                     </body>
                 </body>
             </body>
@@ -193,7 +211,13 @@
                               quat="0.707107 0 0.707107 0"/>
 
                         <!-- RR_foot only collision -->
-                        <geom name="RR" class="collision" size="0.0265" pos="0 0 -0.25"/>
+                        <!--geom name="RR" class="collision" size="0.0265" pos="0 0 -0.25"/-->
+
+                        <body name="RR_foot" pos="0 0 -0.25">
+                            <!-- RR_foot only collision -->
+                            <geom name="RR" class="collision" size="0.0265"/>
+                        </body>
+
                     </body>
                 </body>
             </body>
@@ -221,18 +245,18 @@
         <framepos name="imu_pos" objtype="site" objname="imu"/>
         <framequat name="imu_quat" objtype="site" objname="imu"/>
 
-        <jointpos name="joint_FL_hip_joint_pos" joint="FL_hip_joint"/>
-        <jointpos name="joint_FL_thigh_joint_pos" joint="FL_thigh_joint"/>
-        <jointpos name="joint_FL_calf_joint_pos" joint="FL_calf_joint"/>
-        <jointpos name="joint_FR_hip_joint_pos" joint="FR_hip_joint"/>
-        <jointpos name="joint_FR_thigh_joint_pos" joint="FR_thigh_joint"/>
-        <jointpos name="joint_FR_calf_joint_pos" joint="FR_calf_joint"/>
-        <jointpos name="joint_RL_hip_joint_pos" joint="RL_hip_joint"/>
-        <jointpos name="joint_RL_thigh_joint_pos" joint="RL_thigh_joint"/>
-        <jointpos name="joint_RL_calf_joint_pos" joint="RL_calf_joint"/>
-        <jointpos name="joint_RR_hip_joint_pos" joint="RR_hip_joint"/>
-        <jointpos name="joint_RR_thigh_joint_pos" joint="RR_thigh_joint"/>
-        <jointpos name="joint_RR_calf_joint_pos" joint="RR_calf_joint"/>
+        <jointpos name="FL_hip_joint_pos" joint="FL_hip_joint"/>
+        <jointpos name="FL_thigh_joint_pos" joint="FL_thigh_joint"/>
+        <jointpos name="FL_calf_joint_pos" joint="FL_calf_joint"/>
+        <jointpos name="FR_hip_joint_pos" joint="FR_hip_joint"/>
+        <jointpos name="FR_thigh_joint_pos" joint="FR_thigh_joint"/>
+        <jointpos name="FR_calf_joint_pos" joint="FR_calf_joint"/>
+        <jointpos name="RL_hip_joint_pos" joint="RL_hip_joint"/>
+        <jointpos name="RL_thigh_joint_pos" joint="RL_thigh_joint"/>
+        <jointpos name="RL_calf_joint_pos" joint="RL_calf_joint"/>
+        <jointpos name="RR_hip_joint_pos" joint="RR_hip_joint"/>
+        <jointpos name="RR_thigh_joint_pos" joint="RR_thigh_joint"/>
+        <jointpos name="RR_calf_joint_pos" joint="RR_calf_joint"/>
     </sensor>
 
 
