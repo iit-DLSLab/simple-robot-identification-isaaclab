@@ -13,7 +13,7 @@ from isaaclab.app import AppLauncher
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Pace agent for Isaac Lab environments.")
 parser.add_argument("--num_envs", type=int, default=8192, help="Number of environments to simulate.")
-parser.add_argument("--task", type=str, default="IsaacLab-Pace-Go2", help="Name of the task.")
+parser.add_argument("--task", type=str, default="IsaacLab-Pace-Aliengo", help="Name of the task.")
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
 # parse the arguments
@@ -26,6 +26,7 @@ simulation_app = app_launcher.app
 """Rest everything follows."""
 
 import gymnasium as gym
+import numpy as np
 import torch
 
 import isaaclab_tasks  # noqa: F401
@@ -41,6 +42,25 @@ from tasks import register_my_tasks
 
 from pace_sim2real.utils import project_root
 from pace_sim2real import CMAESOptimizer
+
+
+def load_torch_data_compat(data_file):
+    """Load torch data across PyTorch/NumPy compatibility differences."""
+    try:
+        return torch.load(data_file, map_location="cpu", weights_only=False)
+    except TypeError:
+        # Older PyTorch versions do not support the weights_only argument.
+        return torch.load(data_file, map_location="cpu")
+    except ModuleNotFoundError as exc:
+        # Some pickles reference numpy._core (NumPy 2.x internal path).
+        if exc.name == "numpy._core":
+            sys.modules["numpy._core"] = np.core
+            sys.modules["numpy._core.multiarray"] = np.core.multiarray
+            try:
+                return torch.load(data_file, map_location="cpu", weights_only=False)
+            except TypeError:
+                return torch.load(data_file, map_location="cpu")
+        raise
 
 
 def main():
@@ -65,7 +85,9 @@ def main():
     data_file = project_root() / "data" / env_cfg.sim2real.data_dir
     log_dir = project_root() / "logs" / "pace" / env_cfg.sim2real.robot_name
 
-    data = torch.load(data_file)
+    # Dataset files are trusted and may contain non-tensor Python objects.
+    data = load_torch_data_compat(data_file)
+    breakpoint()
     time_data = data["time"].to(env.unwrapped.device)
     target_dof_pos = data["des_dof_pos"].to(env.unwrapped.device)
     measured_dof_pos = data["dof_pos"].to(env.unwrapped.device)
