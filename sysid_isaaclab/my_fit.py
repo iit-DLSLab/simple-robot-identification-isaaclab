@@ -87,7 +87,6 @@ def main():
 
     # Dataset files are trusted and may contain non-tensor Python objects.
     data = load_torch_data_compat(data_file)
-    breakpoint()
     time_data = data["time"].to(env.unwrapped.device)
     target_dof_pos = data["des_dof_pos"].to(env.unwrapped.device)
     measured_dof_pos = data["dof_pos"].to(env.unwrapped.device)
